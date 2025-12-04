@@ -1,0 +1,24 @@
+# Pre-commit configuration for type safety
+repos:
+  - repo: local
+    hooks:
+      - id: typescript-check
+        name: TypeScript Type Check
+        entry: npm run type-check
+        language: system
+        pass_filenames: false
+        files: '\.(ts|tsx)$'
+        
+      - id: eslint-check
+        name: ESLint Check
+        entry: npm run lint
+        language: system
+        pass_filenames: false
+        files: '\.(ts|tsx)$'
+        
+      - id: no-any-types
+        name: Check for 'any' types
+        entry: sh -c 'grep -r "\\bany\\b" src --include="*.ts" --include="*.tsx" | grep -v "// eslint-disable" | grep -v "@ts-ignore" && exit 1 || exit 0'
+        language: system
+        pass_filenames: false
+        files: '\.(ts|tsx)$'
