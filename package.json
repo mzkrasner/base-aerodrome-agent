@@ -31,6 +31,7 @@
   "dependencies": {
     "@ai-sdk/anthropic": "^1.2.12",
     "@mastra/core": "^0.24.6",
+    "@mastra/langfuse": "^0.2.3",
     "@mcpdotdirect/evm-mcp-server": "^1.2.0",
     "@the-convocation/twitter-scraper": "^0.17.1",
     "@trivago/prettier-plugin-sort-imports": "^6.0.0",

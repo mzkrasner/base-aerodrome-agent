@@ -67,7 +67,7 @@ describe('Trading Agent - Inference Provider', () => {
         maxSteps: 3,
         onStepFinish: ({ toolCalls }) => {
           if (toolCalls?.length) {
-            toolsCalled.push(...toolCalls.map((t) => t.toolName))
+            toolsCalled.push(...toolCalls.map((t) => t.payload.toolName))
           }
         },
       }
@@ -95,7 +95,7 @@ describe('Trading Agent - Inference Provider', () => {
         maxSteps: 3,
         onStepFinish: ({ toolCalls }) => {
           if (toolCalls?.length) {
-            toolsCalled.push(...toolCalls.map((t) => t.toolName))
+            toolsCalled.push(...toolCalls.map((t) => t.payload.toolName))
           }
         },
       }
@@ -119,7 +119,7 @@ describe('Trading Agent - Inference Provider', () => {
         maxSteps: 5,
         onStepFinish: ({ toolCalls }) => {
           if (toolCalls?.length) {
-            toolsCalled.push(...toolCalls.map((t) => t.toolName))
+            toolsCalled.push(...toolCalls.map((t) => t.payload.toolName))
           }
         },
       }

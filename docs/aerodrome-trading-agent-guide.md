@@ -54,7 +54,58 @@ The trading agent follows this loop pattern:
 | Risk/Collateral Gate | Validates proposed allocations          | Balance checks, slippage limits      |
 | Execution Layer      | Submits transactions                    | Aerodrome Router swaps               |
 | Reconciliation       | Tracks pending txs, confirms fills      | Wait for receipts, update balances   |
-| Observability        | Logging and monitoring                  | Trading diary, metrics               |
+| Observability        | Logging and monitoring                  | Trading diary, Langfuse tracing      |
+
+### Observability with Langfuse
+
+The agent integrates with [Langfuse](https://langfuse.com) for comprehensive observability:
+
+**What Gets Traced:**
+- Every agent iteration (prompt, context, decision)
+- All tool calls with inputs and outputs
+- Token usage per iteration
+- Execution duration and performance
+- Error states and debugging info
+
+**Configuration:**
+Langfuse is automatically enabled when credentials are present in `.env`:
+```bash
+LANGFUSE_SECRET_KEY=sk-lf-...
+LANGFUSE_PUBLIC_KEY=pk-lf-...
+LANGFUSE_BASE_URL=https://cloud.langfuse.com
+```
+
+**Modes:**
+- **Development** (`NODE_ENV=development`): Realtime mode - traces appear immediately
+- **Production** (`NODE_ENV=production`): Batch mode - optimized for performance
+
+**Implementation:**
+Located in `src/mastra/config.ts`:
+```typescript
+import { LangfuseExporter } from '@mastra/langfuse'
+
+const langfuseExporter = new LangfuseExporter({
+  publicKey: process.env.LANGFUSE_PUBLIC_KEY!,
+  secretKey: process.env.LANGFUSE_SECRET_KEY!,
+  baseUrl: process.env.LANGFUSE_BASE_URL,
+  realtime: process.env.NODE_ENV === 'development',
+  options: {
+    environment: process.env.NODE_ENV,
+  },
+})
+
+export const mastra = new Mastra({
+  agents: { aerodromeAgent },
+  observability: {
+    configs: {
+      langfuse: {
+        serviceName: 'aerodrome-trading-agent',
+        exporters: [langfuseExporter],
+      },
+    },
+  },
+})
+```
 
 ---
 
@@ -669,6 +720,11 @@ ANTHROPIC_API_KEY=         # Claude for agent
 
 # Sentiment (optional)
 GROK_API_KEY=              # X/Twitter sentiment via Grok
+
+# Observability (optional)
+LANGFUSE_SECRET_KEY=       # Agent tracing and monitoring
+LANGFUSE_PUBLIC_KEY=       # Get keys at https://cloud.langfuse.com
+LANGFUSE_BASE_URL=         # Default: https://cloud.langfuse.com
 ```
 
 ### API Endpoints

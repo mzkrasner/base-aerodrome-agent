@@ -190,6 +190,11 @@ ALCHEMY_API_KEY=...
 COINGECKO_API_KEY=...   # For technical indicators
 GROK_API_KEY=...        # For X/Twitter sentiment
 
+# Observability (optional)
+LANGFUSE_SECRET_KEY=... # For agent tracing and monitoring
+LANGFUSE_PUBLIC_KEY=... # Get keys at https://cloud.langfuse.com
+LANGFUSE_BASE_URL=https://cloud.langfuse.com
+
 # Safety
 DRY_RUN=true            # Set to block all trades
 ```
@@ -288,6 +293,16 @@ pnpm mastra:dev     # Interactive UI at localhost:4111
 - Slippage protection on all swaps
 - DRY_RUN mode to prevent accidental trades
 - Database stores reasoning for audit trail
+
+## 📊 Observability
+
+Optional [Langfuse](https://langfuse.com) integration provides:
+- Real-time tracing of agent decisions and tool calls
+- Execution monitoring and debugging
+- Performance analytics across iterations
+- Token usage tracking
+
+When Langfuse credentials are provided, traces automatically appear in your dashboard. Works in both development (realtime) and production (batched) modes.
 
 ## 📄 License
 

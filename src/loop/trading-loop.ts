@@ -170,7 +170,7 @@ Return your decision as JSON with this structure:
       maxSteps: TRADING_CONFIG.maxAgentSteps,
       onStepFinish: ({ toolCalls }) => {
         if (toolCalls?.length) {
-          const toolNames = toolCalls.map((t) => t.toolName).join(', ')
+          const toolNames = toolCalls.map((t) => t.payload.toolName).join(', ')
           console.log(`  📞 Agent called: ${toolNames}`)
         }
       },
