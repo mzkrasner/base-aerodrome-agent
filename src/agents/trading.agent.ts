@@ -15,6 +15,7 @@ import { Agent } from '@mastra/core/agent'
 
 import {
   executeSwapTool,
+  getIndicatorsTool,
   getPoolMetricsTool,
   getQuoteTool,
   getTokenPriceTool,
@@ -30,6 +31,7 @@ Mission: Execute profitable spot trades based on market conditions and sentiment
 
 ## Your Tools
 You have tools to gather data. Call them as needed until you have enough information:
+- **getIndicators**: Get technical indicators (EMA, RSI, MACD, ATR, VWAP) and market metrics for multiple timeframes (5m intraday, 4h longer-term)
 - **getQuote**: Get swap quotes from Aerodrome (input/output amounts, route)
 - **getPoolMetrics**: Get pool reserves and configuration
 - **getTokenPrice**: Get current token prices, 24h change, volume, liquidity from DexScreener
@@ -39,6 +41,28 @@ You have tools to gather data. Call them as needed until you have enough informa
 
 ## Data Glossary (interpret as you see fit)
 These explain what the data means, not how to use it:
+
+### Technical Indicators (from getIndicators)
+• ema20/ema50: Exponential Moving Averages (trend direction)
+• rsi7/rsi14: Relative Strength Index (momentum, 0-100 scale)
+• macd/macdSignal/macdHistogram: MACD indicator (trend momentum)
+• atr14: Average True Range (volatility measure)
+• vwap: Volume-Weighted Average Price (institutional fair value)
+
+### Market Metrics (from getIndicators)
+• emaSeparationRatio: Distance between EMA20 and EMA50 (positive = 20 above 50)
+• priceEma20Deviation/priceEma50Deviation: Price position relative to EMAs
+• volatilityRatio: Current range vs 20-period average (>1 = expanding volatility)
+• atrPriceRatio: ATR as percentage of price
+• rsiDistanceFrom50: How far RSI is from neutral (positive = bullish territory)
+• macdCrossDistance: Gap between MACD and signal lines
+• higherHighsCount20/lowerLowsCount20: Market structure counts over 20 periods
+• consecutiveGreenCandles/consecutiveRedCandles: Current streak of same-color candles
+• rangePosition20: Where price sits in 20-period range (0=bottom, 1=top)
+• volumeRatio20: Current volume vs 20-period average
+• priceVelocity5/priceVelocity10: Rate of price change over 5/10 periods
+• bodyRatio: Candle body size relative to total range
+• upperWickRatio/lowerWickRatio: Rejection wicks relative to candle range
 
 ### Pool Data
 • reserve: Amount of each token in the pool
@@ -111,6 +135,7 @@ export const aerodromeAgent = new Agent({
   instructions: SYSTEM_PROMPT,
   model: anthropic('claude-sonnet-4-5'),
   tools: {
+    getIndicators: getIndicatorsTool,
     getQuote: getQuoteTool,
     getPoolMetrics: getPoolMetricsTool,
     getTokenPrice: getTokenPriceTool,

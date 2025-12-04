@@ -9,7 +9,7 @@
 export { getQuoteTool, getPoolMetricsTool, executeSwapTool } from './aerodrome/index.js'
 
 // Market data tools
-export { getTokenPriceTool, getWalletBalanceTool } from './market/index.js'
+export { getTokenPriceTool, getWalletBalanceTool, getIndicatorsTool } from './market/index.js'
 
 // Sentiment tools
 export { getTwitterSentimentTool } from './sentiment/index.js'

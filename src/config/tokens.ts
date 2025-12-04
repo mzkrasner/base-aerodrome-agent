@@ -5,18 +5,33 @@
 
 /** Base chain token addresses */
 export const TOKEN_ADDRESSES = {
+  // === Core tokens ===
   /** Wrapped ETH on Base */
   WETH: '0x4200000000000000000000000000000000000006',
   /** USDC on Base (native, not bridged) */
   USDC: '0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913',
   /** Bridged USDC on Base (from Ethereum) */
   USDbC: '0xd9aAEc86B65D86f6A7B5B1b0c42FFA531710b6CA',
+  /** DAI Stablecoin on Base */
+  DAI: '0x50c5725949A6F0c72E6C4a641F24049A917DB0Cb',
+
+  // === DeFi tokens ===
   /** Aerodrome Finance token */
   AERO: '0x940181a94A35A4569E4529A3CDfB74e38FD98631',
   /** Coinbase Wrapped Staked ETH */
   cbETH: '0x2Ae3F1Ec7F1F5012CFEab0185bfc7aa3cf0DEc22',
-  /** DAI Stablecoin on Base */
-  DAI: '0x50c5725949A6F0c72E6C4a641F24049A917DB0Cb',
+  /** Coinbase Wrapped BTC */
+  cbBTC: '0xcbB7C0000aB88B473b1f5aFd9ef808440eed33Bf',
+  /** Virtual Protocol - AI agents platform */
+  VIRTUAL: '0x0b3e328455c4059EEb9e3f84b5543F74E24e7E1b',
+
+  // === Community/Meme tokens ===
+  /** Based Brett - top meme coin on Base */
+  BRETT: '0x532f27101965dd16442E59d40670FaF5eBB142E4',
+  /** Degen - Farcaster community token */
+  DEGEN: '0x4ed4E862860beD51a9570b96d89aF5E1B0Efefed',
+  /** Toshi - Base native meme coin */
+  TOSHI: '0xAC1Bd2486aaf3B5C0fc3Fd868558b082a531b2b4',
 } as const
 
 /** Token symbol to address mapping */
@@ -33,6 +48,7 @@ export interface TokenMetadata {
 
 /** Complete token metadata */
 export const TOKEN_METADATA: Record<TokenSymbol, TokenMetadata> = {
+  // Core tokens
   WETH: {
     symbol: 'WETH',
     address: TOKEN_ADDRESSES.WETH,
@@ -54,6 +70,15 @@ export const TOKEN_METADATA: Record<TokenSymbol, TokenMetadata> = {
     name: 'Bridged USD Coin',
     isStablecoin: true,
   },
+  DAI: {
+    symbol: 'DAI',
+    address: TOKEN_ADDRESSES.DAI,
+    decimals: 18,
+    name: 'Dai Stablecoin',
+    isStablecoin: true,
+  },
+
+  // DeFi tokens
   AERO: {
     symbol: 'AERO',
     address: TOKEN_ADDRESSES.AERO,
@@ -68,12 +93,42 @@ export const TOKEN_METADATA: Record<TokenSymbol, TokenMetadata> = {
     name: 'Coinbase Wrapped Staked ETH',
     isStablecoin: false,
   },
-  DAI: {
-    symbol: 'DAI',
-    address: TOKEN_ADDRESSES.DAI,
+  cbBTC: {
+    symbol: 'cbBTC',
+    address: TOKEN_ADDRESSES.cbBTC,
+    decimals: 8,
+    name: 'Coinbase Wrapped BTC',
+    isStablecoin: false,
+  },
+  VIRTUAL: {
+    symbol: 'VIRTUAL',
+    address: TOKEN_ADDRESSES.VIRTUAL,
     decimals: 18,
-    name: 'Dai Stablecoin',
-    isStablecoin: true,
+    name: 'Virtual Protocol',
+    isStablecoin: false,
+  },
+
+  // Community/Meme tokens
+  BRETT: {
+    symbol: 'BRETT',
+    address: TOKEN_ADDRESSES.BRETT,
+    decimals: 18,
+    name: 'Based Brett',
+    isStablecoin: false,
+  },
+  DEGEN: {
+    symbol: 'DEGEN',
+    address: TOKEN_ADDRESSES.DEGEN,
+    decimals: 18,
+    name: 'Degen',
+    isStablecoin: false,
+  },
+  TOSHI: {
+    symbol: 'TOSHI',
+    address: TOKEN_ADDRESSES.TOSHI,
+    decimals: 18,
+    name: 'Toshi',
+    isStablecoin: false,
   },
 }
 
@@ -122,8 +177,19 @@ export function shouldUseStablePool(tokenA: string, tokenB: string): boolean {
  * These are high-liquidity pairs on Aerodrome
  */
 export const DEFAULT_TRADING_PAIRS = [
+  // Core DeFi pairs
   { base: 'USDC', quote: 'WETH' },
   { base: 'USDC', quote: 'AERO' },
   { base: 'WETH', quote: 'AERO' },
   { base: 'USDC', quote: 'cbETH' },
+  { base: 'USDC', quote: 'cbBTC' },
+  { base: 'WETH', quote: 'cbBTC' },
+
+  // AI/Protocol tokens
+  { base: 'WETH', quote: 'VIRTUAL' },
+
+  // Community/Meme tokens (high volume)
+  { base: 'WETH', quote: 'BRETT' },
+  { base: 'WETH', quote: 'DEGEN' },
+  { base: 'WETH', quote: 'TOSHI' },
 ] as const
