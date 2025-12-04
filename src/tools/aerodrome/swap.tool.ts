@@ -93,20 +93,17 @@ Requires wallet to be configured with AGENT_PRIVATE_KEY.`,
         wallet
       )
 
-      let tx: ethers.TransactionResponse
+      let tx: ethers.ContractTransactionResponse
 
       // Check if swapping from native ETH
       const isFromETH = tokenInMeta.address.toLowerCase() === TOKEN_ADDRESSES.WETH.toLowerCase()
 
       if (isFromETH) {
         // Swap ETH for tokens
-        tx = await router.swapExactETHForTokens(
-          minAmountOutRaw,
-          [route],
-          wallet.address,
-          deadline,
-          { value: amountInRaw }
-        )
+        const swapEthFn = router.getFunction('swapExactETHForTokens')
+        tx = (await swapEthFn(minAmountOutRaw, [route], wallet.address, deadline, {
+          value: amountInRaw,
+        })) as ethers.ContractTransactionResponse
       } else {
         // Approve token spending if needed
         await approveToken(tokenInMeta.address, AERODROME_CONTRACTS.ROUTER_V2, amountInRaw)
@@ -115,21 +112,23 @@ Requires wallet to be configured with AGENT_PRIVATE_KEY.`,
         const isToETH = tokenOutMeta.address.toLowerCase() === TOKEN_ADDRESSES.WETH.toLowerCase()
 
         if (isToETH) {
-          tx = await router.swapExactTokensForETH(
+          const swapToEthFn = router.getFunction('swapExactTokensForETH')
+          tx = (await swapToEthFn(
             amountInRaw,
             minAmountOutRaw,
             [route],
             wallet.address,
             deadline
-          )
+          )) as ethers.ContractTransactionResponse
         } else {
-          tx = await router.swapExactTokensForTokens(
+          const swapTokensFn = router.getFunction('swapExactTokensForTokens')
+          tx = (await swapTokensFn(
             amountInRaw,
             minAmountOutRaw,
             [route],
             wallet.address,
             deadline
-          )
+          )) as ethers.ContractTransactionResponse
         }
       }
 

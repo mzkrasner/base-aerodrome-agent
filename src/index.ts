@@ -81,11 +81,11 @@ async function startApplication(): Promise<void> {
     process.on('SIGTERM', gracefulShutdown)
     process.on('uncaughtException', (error) => {
       console.error('❌ Uncaught exception:', error)
-      gracefulShutdown()
+      void gracefulShutdown()
     })
     process.on('unhandledRejection', (reason, promise) => {
       console.error('❌ Unhandled rejection at:', promise, 'reason:', reason)
-      gracefulShutdown()
+      void gracefulShutdown()
     })
 
     console.log('🎉 Aerodrome Trading Agent initialized!')

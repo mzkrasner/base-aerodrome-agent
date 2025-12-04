@@ -37,9 +37,9 @@
   },
   "overrides": [
     {
-      "files": ["*.config.js", "*.config.mjs", "*.config.ts"],
-      "rules": {
-        "@typescript-eslint/no-var-requires": "off"
+      "files": ["*.config.js", "*.config.mjs", "*.config.ts", "drizzle.config.ts"],
+      "parserOptions": {
+        "project": null
       }
     }
   ],

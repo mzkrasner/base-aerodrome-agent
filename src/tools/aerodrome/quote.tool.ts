@@ -80,7 +80,9 @@ Use this to check swap prices before executing trades.`,
         provider
       )
 
-      const amounts = await router.getAmountsOut(amountInRaw, [route])
+      // Call getAmountsOut with explicit type for the return value
+      const getAmountsOutFn = router.getFunction('getAmountsOut')
+      const amounts = (await getAmountsOutFn(amountInRaw, [route])) as bigint[]
       const amountOutRaw = amounts[amounts.length - 1]
       const amountOut = ethers.formatUnits(amountOutRaw, tokenOutMeta.decimals)
 

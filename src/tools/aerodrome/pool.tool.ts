@@ -74,11 +74,15 @@ Use this to assess pool depth before trading.`,
         provider
       )
 
-      const poolAddress = await router.poolFor(
-        tokenAMeta.address,
-        tokenBMeta.address,
-        isStable,
-        AERODROME_CONTRACTS.POOL_FACTORY
+      // Call poolFor with explicit type for the return value
+      const poolForFn = router.getFunction('poolFor')
+      const poolAddress = String(
+        await poolForFn(
+          tokenAMeta.address,
+          tokenBMeta.address,
+          isStable,
+          AERODROME_CONTRACTS.POOL_FACTORY
+        )
       )
 
       if (poolAddress === ethers.ZeroAddress) {
@@ -105,8 +109,16 @@ Use this to assess pool depth before trading.`,
       }
 
       const pool = new ethers.Contract(poolAddress, AERODROME_POOL_ABI, provider)
-      const [reserve0Raw, reserve1Raw] = await pool.getReserves()
-      const token0Address = await pool.token0()
+
+      // Get reserves with explicit typing
+      const getReservesFn = pool.getFunction('getReserves')
+      const reserves = (await getReservesFn()) as [bigint, bigint, bigint]
+      const reserve0Raw = reserves[0]
+      const reserve1Raw = reserves[1]
+
+      // Get token0 address with explicit typing
+      const token0Fn = pool.getFunction('token0')
+      const token0Address = String(await token0Fn())
 
       // Determine which token is token0 vs token1
       const token0IsA = token0Address.toLowerCase() === tokenAMeta.address.toLowerCase()

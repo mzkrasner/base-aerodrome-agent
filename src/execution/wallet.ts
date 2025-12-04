@@ -274,11 +274,9 @@ export async function getTokenAllowance(
   const provider = getProvider()
 
   const tokenContract = new ethers.Contract(tokenAddress, ERC20_ABI, provider)
-  const allowanceResult = await tokenContract.getFunction('allowance')(
-    wallet.address,
-    spenderAddress
-  )
-  return BigInt(String(allowanceResult))
+  const allowanceFn = tokenContract.getFunction('allowance')
+  const allowanceResult: bigint = (await allowanceFn(wallet.address, spenderAddress)) as bigint
+  return allowanceResult
 }
 
 /**
@@ -309,7 +307,7 @@ export async function approveToken(
 
   console.log(`Approving ${tokenAddressOrSymbol} for ${spenderAddress}...`)
   const approveFn = tokenContract.getFunction('approve')
-  const txResponse: ethers.ContractTransactionResponse = await approveFn(spenderAddress, amount)
+  const txResponse = (await approveFn(spenderAddress, amount)) as ethers.ContractTransactionResponse
   const receipt = await txResponse.wait()
 
   if (!receipt) {

@@ -96,19 +96,22 @@ For sentiment velocity, describe how sentiment is changing over time.`
       choices?: Array<{ message?: { content?: string } }>
       citations?: string[]
     }
-    const content = result.choices?.[0]?.message?.content || ''
-    const citations = result.citations || []
+    const content = result.choices?.[0]?.message?.content ?? ''
+    const citations = result.citations ?? []
 
     // Try to parse JSON response
     try {
       // Extract JSON from response (may have markdown wrapper)
       const jsonMatch = content.match(/\{[\s\S]*\}/)
       if (jsonMatch) {
-        const parsed = JSON.parse(jsonMatch[0])
+        const parsed = JSON.parse(jsonMatch[0]) as {
+          observations?: Record<string, unknown>
+          search_metadata?: Record<string, unknown>
+        }
         return {
-          observations: parsed.observations || {},
+          observations: parsed.observations ?? {},
           citations: citations.slice(0, 10),
-          searchMetadata: parsed.search_metadata || {},
+          searchMetadata: parsed.search_metadata ?? {},
         }
       }
     } catch {

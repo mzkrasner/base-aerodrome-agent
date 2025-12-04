@@ -150,6 +150,19 @@ Return your decision as JSON with this structure:
 }
 
 /**
+ * Expected structure of agent's JSON response
+ */
+interface AgentDecisionResponse {
+  reasoning?: string
+  trade_decisions?: Array<{
+    token?: string
+    action?: string
+    amount_usd?: number
+    rationale?: string
+  }>
+}
+
+/**
  * Parse the agent's JSON decision from response text
  */
 function parseAgentDecision(responseText: string): {
@@ -163,15 +176,15 @@ function parseAgentDecision(responseText: string): {
     const jsonMatch = responseText.match(/\{[\s\S]*\}/)
     if (!jsonMatch) return null
 
-    const parsed = JSON.parse(jsonMatch[0])
+    const parsed = JSON.parse(jsonMatch[0]) as AgentDecisionResponse
 
     if (parsed.trade_decisions && parsed.trade_decisions.length > 0) {
       const firstDecision = parsed.trade_decisions[0]
       return {
-        reasoning: parsed.reasoning || '',
-        action: firstDecision.action?.toUpperCase() || 'HOLD',
-        amountUsd: firstDecision.amount_usd,
-        rationale: firstDecision.rationale,
+        reasoning: parsed.reasoning ?? '',
+        action: firstDecision?.action?.toUpperCase() ?? 'HOLD',
+        amountUsd: firstDecision?.amount_usd,
+        rationale: firstDecision?.rationale,
       }
     }
 
