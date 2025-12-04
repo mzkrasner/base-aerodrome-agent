@@ -215,7 +215,7 @@ pnpm db:studio      # Open Drizzle Studio
 
 ## 📄 License
 
-MIT
+[MIT](LICENSE)
 
 ---
 
