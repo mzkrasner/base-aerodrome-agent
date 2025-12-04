@@ -6,6 +6,24 @@ export * from './tokens.js'
 export * from './contracts.js'
 
 /**
+ * Environment configuration
+ * DRY_RUN=true prevents ANY actual trades from being executed
+ */
+export const ENV_CONFIG = {
+  /** When true, all trades are simulated (no real transactions) */
+  dryRun: process.env.DRY_RUN === 'true' || process.env.TEST_MODE === 'true',
+  /** Environment mode */
+  nodeEnv: process.env.NODE_ENV || 'development',
+  /** Is this a test environment? */
+  isTest: process.env.NODE_ENV === 'test',
+} as const
+
+/**
+ * CoinGecko API key for technical indicators
+ */
+export const COINGECKO_API_KEY = process.env.COINGECKO_API_KEY || ''
+
+/**
  * Risk management configuration
  * These limits help prevent excessive losses
  */

@@ -2,21 +2,28 @@
  * Aerodrome Swap Execution Tool
  * Executes token swaps on Aerodrome Router
  * Returns raw transaction result
+ *
+ * SAFETY: Trades are blocked when:
+ * - DRY_RUN=true (recommended for testing)
+ * - TEST_MODE=true
+ * - NODE_ENV=test
+ * - No AGENT_PRIVATE_KEY configured
  */
 import { createTool } from '@mastra/core/tools'
 import { ethers } from 'ethers'
 import { z } from 'zod'
 
 import { AERODROME_CONTRACTS, AERODROME_ROUTER_ABI, createRoute } from '../../config/contracts.js'
-import { TRADING_CONFIG } from '../../config/index.js'
+import { ENV_CONFIG, TRADING_CONFIG } from '../../config/index.js'
 import { TOKEN_ADDRESSES, resolveToken, shouldUseStablePool } from '../../config/tokens.js'
 import { approveToken, getWallet, isWalletConfigured } from '../../execution/wallet.js'
 
 export const executeSwapTool = createTool({
   id: 'aerodrome-execute-swap',
   description: `Execute a token swap on Aerodrome DEX.
-Only call this when you have decided to trade.
-Requires wallet to be configured with AGENT_PRIVATE_KEY.`,
+Only call this when you have decided to trade AND you are confident.
+Requires wallet to be configured with AGENT_PRIVATE_KEY.
+NOTE: Trades are blocked in DRY_RUN mode - the tool will return an error instead of executing.`,
 
   inputSchema: z.object({
     tokenIn: z.string().describe('Input token symbol or address'),
@@ -40,19 +47,24 @@ Requires wallet to be configured with AGENT_PRIVATE_KEY.`,
     }),
     gasUsed: z.string().optional(),
     error: z.string().optional(),
+    dryRun: z.boolean().optional(),
   }),
 
   execute: async ({ context }) => {
     const { tokenIn, tokenOut, amountIn, minAmountOut } = context
 
-    // SAFETY: Block execution in test mode to prevent accidental trades
-    if (process.env.TEST_MODE === 'true' || process.env.NODE_ENV === 'test') {
+    // SAFETY: Block execution in dry run / test mode to prevent accidental trades
+    if (ENV_CONFIG.dryRun || ENV_CONFIG.isTest) {
+      console.log(
+        `🚫 [DRY RUN] Would swap ${amountIn} ${tokenIn} → ${tokenOut} (min: ${minAmountOut})`
+      )
       return {
         success: false,
+        dryRun: true,
         tokenIn: { symbol: tokenIn, amount: amountIn },
-        tokenOut: { symbol: tokenOut, amountExpected: '0', amountMin: minAmountOut },
+        tokenOut: { symbol: tokenOut, amountExpected: minAmountOut, amountMin: minAmountOut },
         error:
-          'BLOCKED: Swap execution is disabled in test mode. Set TEST_MODE=false to enable real trades.',
+          'DRY RUN: Trade was simulated but NOT executed. Set DRY_RUN=false to enable real trades.',
       }
     }
 

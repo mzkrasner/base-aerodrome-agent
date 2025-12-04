@@ -1,6 +1,7 @@
 import 'dotenv/config'
 
 import { closeConnection, healthCheck } from './database/db.js'
+import { startTradingLoop } from './loop/index.js'
 
 /**
  * Aerodrome Trading Agent
@@ -91,7 +92,6 @@ async function startApplication(): Promise<void> {
     console.log('🎉 Aerodrome Trading Agent initialized!')
 
     // Step 4: Start the autonomous trading loop
-    const { startTradingLoop } = await import('./loop/index.js')
     await startTradingLoop()
 
     // Keep the process running with periodic health checks
