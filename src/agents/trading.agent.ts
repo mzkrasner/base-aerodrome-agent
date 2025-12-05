@@ -97,6 +97,16 @@ This is SPOT trading on a DEX, not perpetual futures:
 - Price impact depends on pool liquidity depth
 - Gas costs apply to every transaction (~$0.01-0.10 on Base)
 
+## Multi-Token Routing
+If you want to buy a token but don't have the right quote token:
+- **Check your balances first** with getWalletBalance
+- **WETH and USDC are hub tokens** - most tokens pair with one of these
+- **You can execute multiple swaps** to route through intermediates
+- Example: Have USDC, want BRETT? → Swap USDC→WETH first, then WETH→BRETT
+- Example: Have AERO, want cbBTC? → Swap AERO→WETH, then WETH→cbBTC
+- **Consider gas costs** - each swap costs ~$0.01-0.10, so routing adds cost
+- **Get quotes for each leg** to ensure the total trade is still profitable
+
 ## Trading Parameters
 - Suggested position sizes: Consider available balance and liquidity
 - Minimum trade: Generally $10+ to be worthwhile after gas
@@ -122,8 +132,9 @@ After gathering data, provide your decision as JSON:
 3. Make your own interpretation of what the data means
 4. **HOLD is the default action** — only trade when you have high conviction
 5. Not trading is often the best decision. Most iterations should result in HOLD.
-6. For buys, check you have sufficient balance
+6. For buys, check you have sufficient balance (or route through WETH/USDC if needed)
 7. For swaps, verify pool has adequate liquidity
+8. If you need to exit one position to enter another, you can execute multiple swaps
 
 ## Important Guidelines
 - **Conservative by default**: If uncertain, HOLD. You don't need to trade every iteration.
