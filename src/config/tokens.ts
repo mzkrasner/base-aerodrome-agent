@@ -31,7 +31,7 @@ export const TOKEN_ADDRESSES = {
   /** Degen - Farcaster community token */
   DEGEN: '0x4ed4E862860beD51a9570b96d89aF5E1B0Efefed',
   /** Toshi - Base native meme coin */
-  TOSHI: '0xAC1Bd2486aaf3B5C0fc3Fd868558b082a531b2b4',
+  TOSHI: '0xAC1Bd2486aAf3B5C0fc3Fd868558b082a531B2B4',
 } as const
 
 /** Token symbol to address mapping */

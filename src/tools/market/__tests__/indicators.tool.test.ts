@@ -362,4 +362,34 @@ describe('Indicators Tool Integration', () => {
     expect(result.errors.length).toBeGreaterThan(0)
     expect(result.errors[0]).toContain('Unknown token')
   })
+
+  it('should resolve TOSHI address correctly', async () => {
+    const result = await getIndicators('TOSHI')
+
+    console.log('TOSHI indicators result:', {
+      success: result.success,
+      token: result.token,
+      hasIntraday: result.intraday !== null,
+      hasLongTerm: result.longTerm !== null,
+      currentPrice: result.currentPrice,
+      errors: result.errors,
+    })
+
+    // Token should be resolved correctly (even if CoinGecko doesn't have data)
+    expect(result.token.symbol).toBe('TOSHI')
+    expect(result.token.address.toLowerCase()).toBe(TOKEN_ADDRESSES.TOSHI.toLowerCase())
+
+    // If data is available, validate structure
+    if (result.success && result.intraday) {
+      console.log('TOSHI intraday metrics:', {
+        rsi: result.intraday.indicators.rsi14,
+        ema20: result.intraday.indicators.ema20,
+        candleCount: result.intraday.candleCount,
+      })
+      expect(result.intraday.candleCount).toBeGreaterThan(0)
+    } else if (!result.success) {
+      // CoinGecko may not have TOSHI data - that's expected for smaller tokens
+      console.warn('TOSHI data not available (expected for smaller meme coins):', result.errors)
+    }
+  }, 30000)
 })

@@ -134,7 +134,7 @@ export async function fetchOHLCV(options: FetchOHLCVOptions): Promise<OHLCVResul
   }
 
   const {
-    tokenAddress,
+    tokenAddress: rawTokenAddress,
     network = 'base',
     timeframe,
     aggregate = '1',
@@ -142,6 +142,9 @@ export async function fetchOHLCV(options: FetchOHLCVOptions): Promise<OHLCVResul
     beforeTimestamp,
     currency = 'usd',
   } = options
+
+  // Normalize address to lowercase (CoinGecko expects lowercase)
+  const tokenAddress = rawTokenAddress.toLowerCase()
 
   // Validate aggregate for timeframe
   if (!validateAggregate(timeframe, aggregate)) {
