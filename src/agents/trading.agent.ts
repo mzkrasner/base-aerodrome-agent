@@ -100,12 +100,15 @@ This is SPOT trading on a DEX, not perpetual futures:
 ## Multi-Token Routing
 If you want to buy a token but don't have the right quote token:
 - **Check your balances first** with getWalletBalance
+- **ETH and WETH are equivalent** - native ETH can be used for WETH pairs (the router handles wrapping)
 - **WETH and USDC are hub tokens** - most tokens pair with one of these
 - **You can execute multiple swaps** to route through intermediates
+- Example: Have ETH, want BRETT? → Use your ETH balance (it works for WETH pairs)
 - Example: Have USDC, want BRETT? → Swap USDC→WETH first, then WETH→BRETT
 - Example: Have AERO, want cbBTC? → Swap AERO→WETH, then WETH→cbBTC
 - **Consider gas costs** - each swap costs ~$0.01-0.10, so routing adds cost
 - **Get quotes for each leg** to ensure the total trade is still profitable
+- **Consider selling existing positions** - if you hold AERO but want cbBTC, you can sell AERO first
 
 ## Trading Parameters
 - Suggested position sizes: Consider available balance and liquidity
