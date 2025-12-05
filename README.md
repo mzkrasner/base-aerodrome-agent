@@ -181,6 +181,31 @@ pnpm cli start --dry-run    # Safe: simulated trades
 pnpm cli start              # Real trades (5s warning)
 ```
 
+## 🎮 Mastra Studio (Interactive Playground)
+
+For interactive testing and ad-hoc tool calls, use Mastra Studio:
+
+```bash
+pnpm mastra:dev
+```
+
+Opens at **http://localhost:4111** with:
+
+- **Chat Interface** - Talk to the agent directly, ask questions, request analysis
+- **Tool Testing** - Call any tool manually (check prices, get quotes, execute trades)
+- **API Endpoints** - REST API at `/api` for programmatic access
+
+### Use Cases
+
+| Use Case | How |
+|----------|-----|
+| Manual price check | Call `getTokenPrice` with token symbol |
+| Get a swap quote | Call `getQuote` with token pair and amount |
+| Execute a trade | Chat: "Buy $10 of AERO with USDC" |
+| Debug indicators | Call `getIndicators` to see full technical analysis |
+
+> **Note**: `pnpm mastra:dev` runs the Studio UI only. For autonomous trading, use `pnpm dev` or `pnpm cli start`.
+
 ## 🔧 Development
 
 ```bash
@@ -203,6 +228,10 @@ pnpm test
 pnpm db:generate    # Generate new migrations
 pnpm db:migrate     # Apply migrations
 pnpm db:studio      # Open Drizzle Studio
+pnpm db:reset       # Drop all data and re-run migrations
+
+# Mastra Studio
+pnpm mastra:dev     # Interactive UI at localhost:4111
 ```
 
 ## 🔐 Security

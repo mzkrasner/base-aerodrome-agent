@@ -13,6 +13,7 @@ build/
 out/
 *.tsbuildinfo
 .turbo/
+.mastra/
 
 # Environment variables (keep .env.example tracked)
 .env*

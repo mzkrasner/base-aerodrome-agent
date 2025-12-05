@@ -30,7 +30,7 @@
   },
   "dependencies": {
     "@ai-sdk/anthropic": "^1.2.12",
-    "@mastra/core": "^0.10.1",
+    "@mastra/core": "^0.24.6",
     "@mcpdotdirect/evm-mcp-server": "^1.2.0",
     "@the-convocation/twitter-scraper": "^0.17.1",
     "@trivago/prettier-plugin-sort-imports": "^6.0.0",
@@ -50,7 +50,7 @@
     "hono": "^3.11.7",
     "ioredis": "^5.3.2",
     "lru-cache": "^11.1.0",
-    "mastra": "^0.10.13",
+    "mastra": "^0.18.6",
     "natural": "^6.7.0",
     "node-cron": "^3.0.3",
     "openai": "^4.20.1",

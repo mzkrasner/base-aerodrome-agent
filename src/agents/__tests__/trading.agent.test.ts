@@ -12,11 +12,11 @@ import { executeSwapTool } from '../../tools/aerodrome/swap.tool'
 import { aerodromeAgent } from '../trading.agent'
 
 describe('Trading Agent - Safety Checks', () => {
-  it('blocks swap execution in test mode', async () => {
-    // Verify TEST_MODE is set (should be set by test setup)
-    expect(process.env.TEST_MODE).toBe('true')
+  it('blocks swap execution via DRY_RUN by default', async () => {
+    // DRY_RUN defaults to true unless explicitly set to 'false'
+    // This provides safety in test environments
 
-    // Try to execute a swap directly - should be blocked
+    // Try to execute a swap directly - should be blocked by DRY_RUN
     const result = await executeSwapTool.execute({
       context: {
         tokenIn: 'USDC',
@@ -29,8 +29,8 @@ describe('Trading Agent - Safety Checks', () => {
     })
 
     expect(result.success).toBe(false)
-    expect(result.error).toContain('BLOCKED')
-    expect(result.error).toContain('test mode')
+    expect(result.error).toContain('DRY RUN')
+    expect(result.error).toContain('NOT executed')
 
     console.log('Swap blocked with message:', result.error)
   })
@@ -38,7 +38,7 @@ describe('Trading Agent - Safety Checks', () => {
 
 describe('Trading Agent - Inference Provider', () => {
   it('responds to a simple query without tool calls', async () => {
-    const response = await aerodromeAgent.generate(
+    const response = await aerodromeAgent.generateLegacy(
       'What tokens can you help me trade on Aerodrome? Just list the token names, no need to check prices.',
       { maxSteps: 1 }
     )
@@ -61,7 +61,7 @@ describe('Trading Agent - Inference Provider', () => {
   it('uses tools to gather data when asked about prices', async () => {
     const toolsCalled: string[] = []
 
-    const response = await aerodromeAgent.generate(
+    const response = await aerodromeAgent.generateLegacy(
       'What is the current price of AERO? Use your tools to check.',
       {
         maxSteps: 3,
@@ -89,7 +89,7 @@ describe('Trading Agent - Inference Provider', () => {
   it('checks wallet balance when asked about portfolio', async () => {
     const toolsCalled: string[] = []
 
-    const response = await aerodromeAgent.generate(
+    const response = await aerodromeAgent.generateLegacy(
       'What is my current wallet balance? Check my ETH and token balances.',
       {
         maxSteps: 3,
@@ -113,7 +113,7 @@ describe('Trading Agent - Inference Provider', () => {
   it('gathers multiple data sources for trading analysis', async () => {
     const toolsCalled: string[] = []
 
-    const response = await aerodromeAgent.generate(
+    const response = await aerodromeAgent.generateLegacy(
       'Analyze AERO/USDC for a potential trade. Check the price, pool metrics, and give me your analysis. Do NOT execute any trades.',
       {
         maxSteps: 5,
@@ -141,7 +141,7 @@ describe('Trading Agent - Inference Provider', () => {
   }, 90000)
 
   it('returns structured JSON decision when asked', async () => {
-    const response = await aerodromeAgent.generate(
+    const response = await aerodromeAgent.generateLegacy(
       `Based on the following hypothetical data, provide your trading decision as JSON:
       - AERO price: $1.50, up 5% in 24h
       - Pool liquidity: $10M

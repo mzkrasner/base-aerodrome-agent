@@ -1,8 +1,21 @@
-import { createLogger } from '@mastra/core/logger'
+import { ConsoleLogger } from '@mastra/core/logger'
 import { Mastra } from '@mastra/core/mastra'
 
-// Simple configuration matching the working pattern
+import { aerodromeAgent } from '../agents/trading.agent.js'
+
+/**
+ * Mastra Configuration
+ *
+ * This wires up the trading agent for:
+ * - Studio UI (interactive chat, tool testing)
+ * - REST API endpoints (programmatic access)
+ *
+ * Run with: pnpm mastra:dev
+ * Studio available at: http://localhost:4111
+ */
 export const mastra = new Mastra({
-  workflows: {}, // Will be populated when we add workflows
-  logger: createLogger({ name: 'PolymarketAgent', level: 'info' }),
+  agents: {
+    aerodromeTrader: aerodromeAgent,
+  },
+  logger: new ConsoleLogger({ name: 'AerodromeAgent', level: 'info' }),
 })
