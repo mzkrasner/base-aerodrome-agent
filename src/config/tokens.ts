@@ -138,10 +138,12 @@ export const TOKEN_METADATA: Record<TokenSymbol, TokenMetadata> = {
  * @returns Token metadata or undefined if not found
  */
 export function resolveToken(tokenOrAddress: string): TokenMetadata | undefined {
-  // Check if it's a known symbol
-  const upperToken = tokenOrAddress.toUpperCase() as TokenSymbol
-  if (TOKEN_METADATA[upperToken]) {
-    return TOKEN_METADATA[upperToken]
+  // Check if it's a known symbol (case-insensitive lookup)
+  const inputUpper = tokenOrAddress.toUpperCase()
+  for (const [key, metadata] of Object.entries(TOKEN_METADATA)) {
+    if (key.toUpperCase() === inputUpper) {
+      return metadata
+    }
   }
 
   // Check if it's a known address
