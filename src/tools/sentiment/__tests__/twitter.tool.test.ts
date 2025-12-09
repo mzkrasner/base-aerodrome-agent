@@ -2,7 +2,7 @@
  * Twitter Sentiment Tool - Integration Test
  * Calls actual Grok API with X/Twitter live search
  */
-import { describe, expect, it } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { getTwitterSentimentTool } from '../twitter.tool'
 
@@ -115,4 +115,145 @@ describe('Twitter Sentiment Tool', () => {
     // Restore key
     process.env.GROK_API_KEY = originalKey
   })
+})
+
+describe('Twitter Sentiment Tool - Retry Logic', () => {
+  const originalFetch = global.fetch
+  let mockFetch: ReturnType<typeof vi.fn>
+
+  beforeEach(() => {
+    mockFetch = vi.fn()
+    global.fetch = mockFetch
+    // Ensure API key is set for these tests
+    process.env.GROK_API_KEY = 'test-api-key'
+  })
+
+  afterEach(() => {
+    global.fetch = originalFetch
+    vi.restoreAllMocks()
+  })
+
+  /** Helper to create a successful Grok API response */
+  const createSuccessResponse = () =>
+    new Response(
+      JSON.stringify({
+        choices: [
+          {
+            message: {
+              content: JSON.stringify({
+                observations: { AERO: { post_themes: ['bullish'] } },
+                search_metadata: { posts_analyzed: 10 },
+              }),
+            },
+          },
+        ],
+        citations: ['https://x.com/example'],
+      }),
+      { status: 200 }
+    )
+
+  /** Helper to create an error response */
+  const createErrorResponse = (status: number) =>
+    new Response(
+      JSON.stringify({
+        error: { message: `Server error ${status}` },
+      }),
+      { status }
+    )
+
+  it('retries on 500 server error and succeeds', async () => {
+    // First call fails with 500, second succeeds
+    mockFetch
+      .mockResolvedValueOnce(createErrorResponse(500))
+      .mockResolvedValueOnce(createSuccessResponse())
+
+    const result = await getSentiment(['AERO'])
+
+    expect(result.success).toBe(true)
+    expect(mockFetch).toHaveBeenCalledTimes(2)
+  }, 10000)
+
+  it('retries on 429 rate limit and succeeds', async () => {
+    // First call fails with 429, second succeeds
+    mockFetch
+      .mockResolvedValueOnce(createErrorResponse(429))
+      .mockResolvedValueOnce(createSuccessResponse())
+
+    const result = await getSentiment(['AERO'])
+
+    expect(result.success).toBe(true)
+    expect(mockFetch).toHaveBeenCalledTimes(2)
+  }, 10000)
+
+  it('retries on 502/503/504 gateway errors', async () => {
+    // First two calls fail, third succeeds
+    mockFetch
+      .mockResolvedValueOnce(createErrorResponse(502))
+      .mockResolvedValueOnce(createErrorResponse(503))
+      .mockResolvedValueOnce(createSuccessResponse())
+
+    const result = await getSentiment(['AERO'])
+
+    expect(result.success).toBe(true)
+    expect(mockFetch).toHaveBeenCalledTimes(3)
+  }, 15000)
+
+  it('fails after max retries (3 attempts)', async () => {
+    // All calls fail with 500
+    mockFetch
+      .mockResolvedValueOnce(createErrorResponse(500))
+      .mockResolvedValueOnce(createErrorResponse(500))
+      .mockResolvedValueOnce(createErrorResponse(500))
+
+    const result = await getSentiment(['AERO'])
+
+    expect(result.success).toBe(false)
+    expect(result.error).toBe('Failed to fetch sentiment data')
+    expect(mockFetch).toHaveBeenCalledTimes(3)
+  }, 15000)
+
+  it('does not retry on 400 client error', async () => {
+    // 400 is not retryable
+    mockFetch.mockResolvedValueOnce(createErrorResponse(400))
+
+    const result = await getSentiment(['AERO'])
+
+    expect(result.success).toBe(false)
+    expect(mockFetch).toHaveBeenCalledTimes(1) // No retry
+  })
+
+  it('does not retry on 401 unauthorized', async () => {
+    // 401 is not retryable
+    mockFetch.mockResolvedValueOnce(createErrorResponse(401))
+
+    const result = await getSentiment(['AERO'])
+
+    expect(result.success).toBe(false)
+    expect(mockFetch).toHaveBeenCalledTimes(1) // No retry
+  })
+
+  it('retries on network errors', async () => {
+    // First call throws network error, second succeeds
+    mockFetch
+      .mockRejectedValueOnce(new Error('Network request failed'))
+      .mockResolvedValueOnce(createSuccessResponse())
+
+    const result = await getSentiment(['AERO'])
+
+    expect(result.success).toBe(true)
+    expect(mockFetch).toHaveBeenCalledTimes(2)
+  }, 10000)
+
+  it('fails after max retries on persistent network errors', async () => {
+    // All calls throw network errors
+    mockFetch
+      .mockRejectedValueOnce(new Error('Network error 1'))
+      .mockRejectedValueOnce(new Error('Network error 2'))
+      .mockRejectedValueOnce(new Error('Network error 3'))
+
+    const result = await getSentiment(['AERO'])
+
+    expect(result.success).toBe(false)
+    expect(mockFetch).toHaveBeenCalledTimes(3)
+  }, 15000)
 })

@@ -8,25 +8,34 @@
 import { createTool } from '@mastra/core/tools'
 import { z } from 'zod'
 
-/**
- * Fetch sentiment observations from Grok API with Live Search
- */
-async function fetchGrokSentiment(tokens: string[]): Promise<{
+/** Grok API response type */
+interface GrokApiResponse {
+  choices?: Array<{ message?: { content?: string } }>
+  citations?: string[]
+}
+
+/** Result from fetchGrokSentiment */
+interface GrokSentimentResult {
   observations: Record<string, unknown>
   citations: string[]
   searchMetadata: Record<string, unknown>
-} | null> {
+}
+
+/**
+ * Fetch sentiment observations from Grok API with Live Search
+ * Includes retry logic for transient failures (429, 500, 502, 503, 504)
+ */
+async function fetchGrokSentiment(tokens: string[]): Promise<GrokSentimentResult | null> {
   const apiKey = process.env.GROK_API_KEY
 
   if (!apiKey) {
     return null
   }
 
-  try {
-    const tokensStr = tokens.join(', ')
+  const tokensStr = tokens.join(', ')
 
-    // Prompt asks for observations, not recommendations
-    const prompt = `Analyze recent X/Twitter posts about these cryptocurrencies: ${tokensStr}. 
+  // Prompt asks for observations, not recommendations
+  const prompt = `Analyze recent X/Twitter posts about these cryptocurrencies: ${tokensStr}. 
 Focus on multiple time windows (last 15 minutes, last hour, last 4 hours).
 Return a JSON object with this exact format:
 {
@@ -68,66 +77,107 @@ Only report what you observe in posts, don't interpret or recommend.
 For volume metrics, compare recent activity to typical baseline.
 For sentiment velocity, describe how sentiment is changing over time.`
 
-    const response = await fetch('https://api.x.ai/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${apiKey}`,
-      },
-      body: JSON.stringify({
-        model: 'grok-4-fast',
-        messages: [{ role: 'user', content: prompt }],
-        search_parameters: {
-          mode: 'on',
-          sources: [{ type: 'x' }],
-          return_citations: true,
-          limit: 50,
-        },
-        temperature: 0.3,
-      }),
-    })
+  const requestBody = {
+    model: 'grok-4-fast',
+    messages: [{ role: 'user', content: prompt }],
+    search_parameters: {
+      mode: 'on',
+      sources: [{ type: 'x' }],
+      return_citations: true,
+      limit: 50,
+    },
+    temperature: 0.3,
+  }
 
-    if (!response.ok) {
-      console.error(`Grok API error: ${response.status}`)
+  // Retry logic for transient failures
+  const maxRetries = 3
+  const retryableStatuses = [429, 500, 502, 503, 504]
+  let lastError: Error | undefined
+
+  for (let attempt = 0; attempt < maxRetries; attempt++) {
+    try {
+      const response = await fetch('https://api.x.ai/v1/chat/completions', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${apiKey}`,
+        },
+        body: JSON.stringify(requestBody),
+      })
+
+      if (!response.ok) {
+        const status = response.status
+        lastError = new Error(`Grok API error: ${status}`)
+
+        // Retry on transient errors (rate limit, server errors)
+        if (retryableStatuses.includes(status)) {
+          const delay = (attempt + 1) * 2000 // 2s, 4s, 6s
+          console.log(
+            `⚠️  Grok API error (${status}), retrying in ${delay / 1000}s... (attempt ${attempt + 1}/${maxRetries})`
+          )
+
+          if (attempt < maxRetries - 1) {
+            await new Promise((resolve) => setTimeout(resolve, delay))
+            continue
+          }
+        }
+
+        // Non-retryable error or final attempt
+        console.error(`Grok API error: ${status}`)
+        return null
+      }
+
+      const result = (await response.json()) as GrokApiResponse
+      const content = result.choices?.[0]?.message?.content ?? ''
+      const citations = result.citations ?? []
+
+      // Try to parse JSON response
+      try {
+        // Extract JSON from response (may have markdown wrapper)
+        const jsonMatch = content.match(/\{[\s\S]*\}/)
+        if (jsonMatch) {
+          const parsed = JSON.parse(jsonMatch[0]) as {
+            observations?: Record<string, unknown>
+            search_metadata?: Record<string, unknown>
+          }
+          return {
+            observations: parsed.observations ?? {},
+            citations: citations.slice(0, 10),
+            searchMetadata: parsed.search_metadata ?? {},
+          }
+        }
+      } catch {
+        // Return raw content if not JSON
+        return {
+          observations: { raw_summary: content },
+          citations: citations.slice(0, 10),
+          searchMetadata: { note: 'Unstructured response' },
+        }
+      }
+
+      return null
+    } catch (error) {
+      lastError = error instanceof Error ? error : new Error(String(error))
+
+      // Network/connection error - retry with backoff
+      if (attempt < maxRetries - 1) {
+        const delay = (attempt + 1) * 2000
+        console.log(
+          `⚠️  Network error calling Grok API, retrying in ${delay / 1000}s... (attempt ${attempt + 1}/${maxRetries})`
+        )
+        await new Promise((resolve) => setTimeout(resolve, delay))
+        continue
+      }
+
+      // Final attempt failed
+      console.error('Grok API error after retries:', lastError.message)
       return null
     }
-
-    const result = (await response.json()) as {
-      choices?: Array<{ message?: { content?: string } }>
-      citations?: string[]
-    }
-    const content = result.choices?.[0]?.message?.content ?? ''
-    const citations = result.citations ?? []
-
-    // Try to parse JSON response
-    try {
-      // Extract JSON from response (may have markdown wrapper)
-      const jsonMatch = content.match(/\{[\s\S]*\}/)
-      if (jsonMatch) {
-        const parsed = JSON.parse(jsonMatch[0]) as {
-          observations?: Record<string, unknown>
-          search_metadata?: Record<string, unknown>
-        }
-        return {
-          observations: parsed.observations ?? {},
-          citations: citations.slice(0, 10),
-          searchMetadata: parsed.search_metadata ?? {},
-        }
-      }
-    } catch {
-      // Return raw content if not JSON
-      return {
-        observations: { raw_summary: content },
-        citations: citations.slice(0, 10),
-        searchMetadata: { note: 'Unstructured response' },
-      }
-    }
-
-    return null
-  } catch (error) {
-    console.error('Grok API error:', error)
-    return null
   }
+
+  // Should never reach here, but just in case
+  console.error('Grok API failed after all retries:', lastError?.message)
+  return null
 }
 
 export const getTwitterSentimentTool = createTool({
