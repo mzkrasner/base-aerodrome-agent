@@ -89,6 +89,7 @@ This project follows the **correct agentic pattern** where the LLM does the work
 | `getTokenPrice`       | Token prices from DexScreener | Price, 24h change, volume   |
 | `getWalletBalance`    | Current wallet balances       | ETH and token amounts       |
 | `getTwitterSentiment` | X/Twitter observations        | Themes, sentiment velocity  |
+| `getPerformance`      | Portfolio P&L tracking        | Realized/unrealized P&L, positions |
 | `executeSwap`         | Execute trades                | Transaction hash, status    |
 
 ### Database (Persistence)
@@ -97,8 +98,20 @@ This project follows the **correct agentic pattern** where the LLM does the work
 | --------------------- | ------------------------------------------------ |
 | `trading_diary`       | Every decision with reasoning (like diary.jsonl) |
 | `swap_transactions`   | Executed swaps with on-chain data                |
+| `positions`           | Current holdings with cost basis for P&L         |
 | `portfolio_snapshots` | Balance history for performance tracking         |
 | `price_history`       | Cached prices for retrospective analysis         |
+
+### Portfolio Performance Tracking
+
+The agent tracks its own trading performance with cost-basis accounting:
+
+- **Cost Basis**: Records purchase price for every buy, calculates weighted average cost
+- **Realized P&L**: When selling, calculates actual profit/loss vs cost basis
+- **Unrealized P&L**: Current holdings valued at market price vs cost basis
+- **Portfolio Snapshots**: Periodic snapshots of total portfolio value over time
+
+The agent can query its performance via the `getPerformance` tool to inform trading decisions.
 
 ## 📁 Project Structure
 
@@ -109,7 +122,10 @@ src/
 ├── tools/
 │   ├── aerodrome/          # DEX tools (quote, pool, swap)
 │   ├── market/             # Price, balance, and indicators tools
+│   ├── portfolio/          # Performance tracking tool
 │   └── sentiment/          # X/Twitter sentiment tool
+├── services/
+│   └── performance-tracker.ts  # Cost basis and P&L calculations
 ├── loop/
 │   └── trading-loop.ts     # Simple loop calling agent.generate()
 ├── database/

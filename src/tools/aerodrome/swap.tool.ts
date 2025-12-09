@@ -8,6 +8,10 @@
  * - TEST_MODE=true
  * - NODE_ENV=test
  * - No AGENT_PRIVATE_KEY configured
+ *
+ * TRACKING: On successful execution:
+ * - Logs trade to swap_transactions table
+ * - Updates positions table with cost basis
  */
 import { createTool } from '@mastra/core/tools'
 import { ethers } from 'ethers'
@@ -16,7 +20,50 @@ import { z } from 'zod'
 import { AERODROME_CONTRACTS, AERODROME_ROUTER_ABI, createRoute } from '../../config/contracts.js'
 import { ENV_CONFIG, TRADING_CONFIG } from '../../config/index.js'
 import { TOKEN_ADDRESSES, resolveToken, shouldUseStablePool } from '../../config/tokens.js'
-import { approveToken, getWallet, isWalletConfigured } from '../../execution/wallet.js'
+import { swapTransactionsRepo } from '../../database/repositories/index.js'
+import { approveToken, getProvider, getWallet, isWalletConfigured } from '../../execution/wallet.js'
+import { performanceTracker } from '../../services/performance-tracker.js'
+
+/** Quote tokens - used as base currency for trading */
+const QUOTE_TOKENS = ['USDC', 'USDbC', 'DAI', 'WETH']
+
+/** Check if a token is a quote token */
+function isQuoteToken(symbol: string): boolean {
+  return QUOTE_TOKENS.includes(symbol.toUpperCase())
+}
+
+/** DexScreener response type */
+interface DexScreenerResponse {
+  pairs?: Array<{
+    chainId: string
+    priceUsd?: string
+    liquidity?: { usd?: number }
+  }>
+}
+
+/** Fetch current USD price for a token */
+async function fetchTokenPriceUsd(tokenAddress: string): Promise<number> {
+  try {
+    const response = await fetch(`https://api.dexscreener.com/latest/dex/tokens/${tokenAddress}`)
+    if (!response.ok) return 0
+
+    const data = (await response.json()) as DexScreenerResponse
+
+    if (data.pairs && data.pairs.length > 0) {
+      const basePairs = data.pairs.filter((p) => p.chainId === 'base')
+      if (basePairs.length === 0) return 0
+
+      const bestPair = basePairs.sort(
+        (a, b) => (b.liquidity?.usd || 0) - (a.liquidity?.usd || 0)
+      )[0]
+
+      return parseFloat(bestPair.priceUsd || '0')
+    }
+    return 0
+  } catch {
+    return 0
+  }
+}
 
 export const executeSwapTool = createTool({
   id: 'aerodrome-execute-swap',
@@ -145,6 +192,102 @@ NOTE: Trades are blocked in DRY_RUN mode - the tool will return an error instead
       }
 
       const receipt = await tx.wait()
+
+      // === TRADE TRACKING ===
+      // Log to swap_transactions and update positions for P&L tracking
+      if (receipt?.hash) {
+        try {
+          // Fetch current prices for USD values
+          const tokenInPriceUsd = await fetchTokenPriceUsd(tokenInMeta.address)
+          const tokenOutPriceUsd = await fetchTokenPriceUsd(tokenOutMeta.address)
+          const amountInNum = parseFloat(amountIn)
+          const amountOutNum = parseFloat(minAmountOut) // Using min as expected
+          const amountInUsd = amountInNum * tokenInPriceUsd
+          const amountOutUsd = amountOutNum * tokenOutPriceUsd
+
+          // Get gas cost in USD (ETH price * gas used * gas price)
+          const provider = getProvider()
+          const feeData = await provider.getFeeData()
+          const gasUsedBn = receipt.gasUsed
+          const gasPriceGwei = feeData.gasPrice
+            ? parseFloat(ethers.formatUnits(feeData.gasPrice, 'gwei'))
+            : 0
+          const gasCostEth =
+            gasUsedBn && feeData.gasPrice
+              ? parseFloat(ethers.formatEther(gasUsedBn * feeData.gasPrice))
+              : 0
+          const ethPriceUsd = await fetchTokenPriceUsd(TOKEN_ADDRESSES.WETH)
+          const gasCostUsd = gasCostEth * ethPriceUsd
+
+          // Log to swap_transactions table
+          await swapTransactionsRepo.logSwap({
+            txHash: receipt.hash,
+            blockNumber: receipt.blockNumber,
+            timestamp: new Date(),
+            tokenIn: tokenInMeta.symbol,
+            tokenInAddress: tokenInMeta.address,
+            amountIn: amountIn,
+            amountInUsd: amountInUsd.toFixed(2),
+            tokenOut: tokenOutMeta.symbol,
+            tokenOutAddress: tokenOutMeta.address,
+            amountOut: minAmountOut,
+            amountOutUsd: amountOutUsd.toFixed(2),
+            poolAddress: route.from, // Pool address from route
+            isStablePool: isStable,
+            gasUsed: Number(gasUsedBn),
+            gasPriceGwei: gasPriceGwei.toFixed(4),
+            gasCostUsd: gasCostUsd.toFixed(4),
+            status: 'SUCCESS',
+          })
+
+          // Update positions for P&L tracking
+          // Determine if this is a BUY or SELL based on quote tokens
+          const tokenInIsQuote = isQuoteToken(tokenInMeta.symbol)
+          const tokenOutIsQuote = isQuoteToken(tokenOutMeta.symbol)
+
+          if (tokenInIsQuote && !tokenOutIsQuote) {
+            // BUY: Spending quote token (USDC/WETH) to get target token
+            await performanceTracker.recordBuy(
+              tokenOutMeta.symbol,
+              tokenOutMeta.address,
+              amountOutNum,
+              amountInUsd // Cost in USD
+            )
+            console.log(
+              `📊 Recorded BUY: ${amountOutNum} ${tokenOutMeta.symbol} for $${amountInUsd.toFixed(2)}`
+            )
+          } else if (!tokenInIsQuote && tokenOutIsQuote) {
+            // SELL: Selling target token to get quote token
+            await performanceTracker.recordSell(
+              tokenInMeta.symbol,
+              amountInNum,
+              amountOutUsd // Proceeds in USD
+            )
+            console.log(
+              `📊 Recorded SELL: ${amountInNum} ${tokenInMeta.symbol} for $${amountOutUsd.toFixed(2)}`
+            )
+          } else {
+            // Token-to-token swap (e.g., AERO → BRETT)
+            // Record as SELL of tokenIn and BUY of tokenOut
+            if (!tokenInIsQuote) {
+              await performanceTracker.recordSell(tokenInMeta.symbol, amountInNum, amountInUsd)
+            }
+            if (!tokenOutIsQuote) {
+              await performanceTracker.recordBuy(
+                tokenOutMeta.symbol,
+                tokenOutMeta.address,
+                amountOutNum,
+                amountOutUsd
+              )
+            }
+            console.log(`📊 Recorded swap: ${tokenInMeta.symbol} → ${tokenOutMeta.symbol}`)
+          }
+        } catch (trackingError) {
+          // Don't fail the swap if tracking fails - just log the error
+          console.error('⚠️ Trade tracking failed (swap succeeded):', trackingError)
+        }
+      }
+      // === END TRADE TRACKING ===
 
       return {
         success: true,

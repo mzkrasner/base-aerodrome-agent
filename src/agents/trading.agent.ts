@@ -16,6 +16,7 @@ import { Agent } from '@mastra/core/agent'
 import {
   executeSwapTool,
   getIndicatorsTool,
+  getPerformanceTool,
   getPoolMetricsTool,
   getQuoteTool,
   getTokenPriceTool,
@@ -37,6 +38,7 @@ You have tools to gather data. Call them as needed until you have enough informa
 - **getTokenPrice**: Get current token prices, 24h change, volume, liquidity from DexScreener
 - **getWalletBalance**: Get your current ETH and token balances
 - **getTwitterSentiment**: Get raw X/Twitter observations about tokens
+- **getPerformance**: Get your trading performance metrics (P&L, win rate, position cost basis)
 - **executeSwap**: Execute a trade (only when you've decided to trade)
 
 ## Data Glossary (interpret as you see fit)
@@ -162,6 +164,7 @@ export const aerodromeAgent = new Agent({
     getTokenPrice: getTokenPriceTool,
     getWalletBalance: getWalletBalanceTool,
     getTwitterSentiment: getTwitterSentimentTool,
+    getPerformance: getPerformanceTool,
     executeSwap: executeSwapTool,
   },
 })

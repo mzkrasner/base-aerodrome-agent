@@ -14,6 +14,72 @@ import { aerodromeAgent } from '../agents/trading.agent.js'
 import { DEFAULT_TRADING_PAIRS, TRADING_CONFIG } from '../config/index.js'
 import { tradingDiaryRepo } from '../database/repositories/index.js'
 import type { DiaryEntryForContext } from '../database/schema/trading/types.js'
+import { getAllBalances } from '../execution/wallet.js'
+import { performanceTracker } from '../services/performance-tracker.js'
+
+/** DexScreener API response type */
+interface DexScreenerResponse {
+  pairs?: Array<{
+    chainId: string
+    priceUsd?: string
+    liquidity?: { usd?: number }
+  }>
+}
+
+/**
+ * Fetch current USD price for a token from DexScreener
+ */
+async function fetchTokenPriceUsd(tokenAddress: string): Promise<number> {
+  try {
+    const response = await fetch(`https://api.dexscreener.com/latest/dex/tokens/${tokenAddress}`)
+    if (!response.ok) return 0
+
+    const data = (await response.json()) as DexScreenerResponse
+
+    if (data.pairs && data.pairs.length > 0) {
+      const basePairs = data.pairs.filter((p) => p.chainId === 'base')
+      if (basePairs.length === 0) return 0
+
+      const bestPair = basePairs.sort(
+        (a, b) => (b.liquidity?.usd || 0) - (a.liquidity?.usd || 0)
+      )[0]
+
+      return parseFloat(bestPair.priceUsd || '0')
+    }
+    return 0
+  } catch {
+    return 0
+  }
+}
+
+/**
+ * Take a portfolio snapshot at the start of each iteration
+ * Records current balances and total value for performance tracking
+ */
+async function takePortfolioSnapshot(iterationNumber: number): Promise<void> {
+  try {
+    const tokenBalances = await getAllBalances()
+
+    // Calculate total value in USD
+    let totalValueUsd = 0
+    const balanceRecord: Record<string, string> = {}
+
+    for (const tb of tokenBalances) {
+      const balanceNum = parseFloat(tb.balanceFormatted)
+      if (balanceNum <= 0) continue
+
+      balanceRecord[tb.symbol] = tb.balanceFormatted
+
+      const priceUsd = await fetchTokenPriceUsd(tb.address)
+      totalValueUsd += balanceNum * priceUsd
+    }
+
+    await performanceTracker.createSnapshot(balanceRecord, totalValueUsd, iterationNumber)
+    console.log(`📸 Portfolio snapshot: $${totalValueUsd.toFixed(2)} total value`)
+  } catch (error) {
+    console.error('Failed to take portfolio snapshot:', error)
+  }
+}
 
 /**
  * Context provided to the agent for each trading iteration
@@ -213,6 +279,9 @@ export async function startTradingLoop(): Promise<void> {
     console.log(`\n${'='.repeat(60)}`)
     console.log(`📈 Trading Iteration #${iterationNumber}`)
     console.log(`${'='.repeat(60)}`)
+
+    // Take portfolio snapshot for performance tracking
+    await takePortfolioSnapshot(iterationNumber)
 
     // Get recent history for context (last 20 decisions)
     const recentHistory = await tradingDiaryRepo.getRecentEntries(20)

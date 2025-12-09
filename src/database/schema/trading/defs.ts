@@ -165,6 +165,54 @@ export const portfolioSnapshots = pgTable(
 )
 
 /**
+ * Positions
+ * Tracks current holdings with cost basis for P&L calculation.
+ * Updated after each trade to maintain accurate cost basis.
+ */
+export const positions = pgTable(
+  'positions',
+  {
+    id: uuidColumn(),
+
+    // Token identification
+    token: text('token').notNull().unique(), // Symbol like "AERO"
+    tokenAddress: text('token_address').notNull(),
+
+    // Current holdings
+    balance: decimal('balance', { precision: 36, scale: 18 }).notNull().default('0'),
+
+    // Cost basis tracking (average cost method)
+    totalCostUsd: decimal('total_cost_usd', { precision: 18, scale: 2 }).notNull().default('0'),
+    averageCostPerToken: decimal('average_cost_per_token', { precision: 36, scale: 18 }),
+
+    // Trade statistics
+    totalBought: decimal('total_bought', { precision: 36, scale: 18 }).notNull().default('0'),
+    totalSold: decimal('total_sold', { precision: 36, scale: 18 }).notNull().default('0'),
+    totalBuyCostUsd: decimal('total_buy_cost_usd', { precision: 18, scale: 2 })
+      .notNull()
+      .default('0'),
+    totalSellProceedsUsd: decimal('total_sell_proceeds_usd', { precision: 18, scale: 2 })
+      .notNull()
+      .default('0'),
+    realizedPnlUsd: decimal('realized_pnl_usd', { precision: 18, scale: 2 }).notNull().default('0'),
+
+    // Trade count
+    buyCount: integer('buy_count').notNull().default(0),
+    sellCount: integer('sell_count').notNull().default(0),
+
+    // First and last trade timestamps
+    firstTradeAt: timestamp('first_trade_at', { withTimezone: true }),
+    lastTradeAt: timestamp('last_trade_at', { withTimezone: true }),
+
+    ...timestampColumns(),
+  },
+  (table) => [
+    index('idx_positions_token').on(table.token),
+    index('idx_positions_balance').on(table.balance),
+  ]
+)
+
+/**
  * Price History Cache
  * Caches token prices for retrospective analysis without hitting external APIs.
  */

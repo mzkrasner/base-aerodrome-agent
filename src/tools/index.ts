@@ -13,3 +13,6 @@ export { getTokenPriceTool, getWalletBalanceTool, getIndicatorsTool } from './ma
 
 // Sentiment tools
 export { getTwitterSentimentTool } from './sentiment/index.js'
+
+// Portfolio tools
+export { getPerformanceTool } from './portfolio/index.js'

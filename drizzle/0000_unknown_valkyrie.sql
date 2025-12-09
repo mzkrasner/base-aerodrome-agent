@@ -11,6 +11,27 @@ CREATE TABLE "portfolio_snapshots" (
 	"updated_at" timestamp with time zone DEFAULT now() NOT NULL
 );
 --> statement-breakpoint
+CREATE TABLE "positions" (
+	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
+	"token" text NOT NULL,
+	"token_address" text NOT NULL,
+	"balance" numeric(36, 18) DEFAULT '0' NOT NULL,
+	"total_cost_usd" numeric(18, 2) DEFAULT '0' NOT NULL,
+	"average_cost_per_token" numeric(36, 18),
+	"total_bought" numeric(36, 18) DEFAULT '0' NOT NULL,
+	"total_sold" numeric(36, 18) DEFAULT '0' NOT NULL,
+	"total_buy_cost_usd" numeric(18, 2) DEFAULT '0' NOT NULL,
+	"total_sell_proceeds_usd" numeric(18, 2) DEFAULT '0' NOT NULL,
+	"realized_pnl_usd" numeric(18, 2) DEFAULT '0' NOT NULL,
+	"buy_count" integer DEFAULT 0 NOT NULL,
+	"sell_count" integer DEFAULT 0 NOT NULL,
+	"first_trade_at" timestamp with time zone,
+	"last_trade_at" timestamp with time zone,
+	"created_at" timestamp with time zone DEFAULT now() NOT NULL,
+	"updated_at" timestamp with time zone DEFAULT now() NOT NULL,
+	CONSTRAINT "positions_token_unique" UNIQUE("token")
+);
+--> statement-breakpoint
 CREATE TABLE "price_history" (
 	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
 	"token" text NOT NULL,
@@ -79,6 +100,8 @@ CREATE TABLE "trading_diary" (
 ALTER TABLE "swap_transactions" ADD CONSTRAINT "swap_transactions_diary_id_trading_diary_id_fk" FOREIGN KEY ("diary_id") REFERENCES "public"."trading_diary"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
 CREATE INDEX "idx_snapshots_timestamp" ON "portfolio_snapshots" USING btree ("timestamp");--> statement-breakpoint
 CREATE INDEX "idx_snapshots_iteration" ON "portfolio_snapshots" USING btree ("iteration_number");--> statement-breakpoint
+CREATE INDEX "idx_positions_token" ON "positions" USING btree ("token");--> statement-breakpoint
+CREATE INDEX "idx_positions_balance" ON "positions" USING btree ("balance");--> statement-breakpoint
 CREATE INDEX "idx_prices_token_timestamp" ON "price_history" USING btree ("token","timestamp");--> statement-breakpoint
 CREATE INDEX "idx_prices_timestamp" ON "price_history" USING btree ("timestamp");--> statement-breakpoint
 CREATE INDEX "idx_swaps_timestamp" ON "swap_transactions" USING btree ("timestamp");--> statement-breakpoint

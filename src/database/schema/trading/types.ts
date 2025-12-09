@@ -3,7 +3,13 @@
  */
 import type { InferInsertModel, InferSelectModel } from 'drizzle-orm'
 
-import type { portfolioSnapshots, priceHistory, swapTransactions, tradingDiary } from './defs.js'
+import type {
+  portfolioSnapshots,
+  positions,
+  priceHistory,
+  swapTransactions,
+  tradingDiary,
+} from './defs.js'
 
 // Trading Diary
 export type TradingDiaryEntry = InferSelectModel<typeof tradingDiary>
@@ -20,6 +26,10 @@ export type NewPortfolioSnapshot = InferInsertModel<typeof portfolioSnapshots>
 // Price History
 export type PriceHistoryEntry = InferSelectModel<typeof priceHistory>
 export type NewPriceHistoryEntry = InferInsertModel<typeof priceHistory>
+
+// Positions
+export type Position = InferSelectModel<typeof positions>
+export type NewPosition = InferInsertModel<typeof positions>
 
 /**
  * Context snapshot stored with each diary entry
