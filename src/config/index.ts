@@ -4,6 +4,7 @@
 
 export * from './tokens.js'
 export * from './contracts.js'
+export * from './eigenai.js'
 
 /**
  * Environment configuration

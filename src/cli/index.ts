@@ -47,9 +47,15 @@ program
 
       console.log('=== Required ===')
       console.log(`📊 Database:       ${dbHealthy ? '✅ Connected' : '❌ Failed'}`)
-      console.log(
-        `🤖 Anthropic API:  ${process.env.ANTHROPIC_API_KEY ? '✅ Configured' : '❌ Missing'}`
-      )
+
+      const useEigenAI = EIGENAI_CONFIG.enabled
+      console.log(`🔀 EIGENAI_ENABLED: ${useEigenAI ? 'true' : 'false'}`)
+
+      const anthropicStatus = process.env.ANTHROPIC_API_KEY ? '✅ Configured' : '❌ Missing'
+      const eigenaiStatus = EIGENAI_CONFIG.grantWalletPrivateKey ? '✅ Configured' : '❌ Missing grant key'
+
+      console.log(`🤖 Anthropic:      ${anthropicStatus} ${useEigenAI ? '(standby)' : '← active'}`)
+      console.log(`🧠 EigenAI:        ${eigenaiStatus} ${useEigenAI ? '← active' : '(standby)'}`)
 
       console.log('\n=== Trading (optional) ===')
       console.log(
