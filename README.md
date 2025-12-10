@@ -1,6 +1,6 @@
 # AI Trading Agent for Aerodrome DEX | Autonomous DeFi Trading on Base
 
-An autonomous spot trading agent for [Aerodrome DEX](https://aerodrome.finance/) on Base chain, built with the [Mastra](https://mastra.ai) AI framework.
+An autonomous spot trading agent for [Aerodrome DEX](https://aerodrome.finance/) on Base chain, built with the [Mastra](https://mastra.ai) AI framework. Supports **verifiable AI inference** via [EigenAI](https://eigenai.xyz).
 
 ## 🎯 What This Does
 
@@ -12,28 +12,64 @@ This agent autonomously trades tokens on Aerodrome DEX by:
 4. **Executing trades** - Swaps tokens on Aerodrome when confident
 5. **Learning from outcomes** - Logs decisions and tracks retrospective performance
 
+**Optional**: Use **EigenAI** for cryptographically signed AI responses, enabling verifiable proof that your agent's decisions came from a specific AI model.
+
 ## 🚀 Quick Start
+
+### One-Command Setup (Recommended)
+
+```bash
+# Clone and install
+git clone <repo>
+cd aerodrome-eigen-agent
+npm install
+
+# Run setup (starts PostgreSQL, creates .env, runs migrations)
+npm run setup
+
+# Check configuration
+npm run cli health
+
+# Run a single analysis (safe - no trades)
+npm run cli analyze
+```
+
+### Manual Setup
 
 ```bash
 # Install dependencies
-pnpm install
+npm install
+
+# Start PostgreSQL (requires Docker)
+docker-compose up -d
 
 # Configure environment
 cp .env.example .env
 # Edit .env with your values
 
-# Setup database
-pnpm db:migrate
+# Run database migrations
+npm run db:migrate
 
-# Check everything is configured
-pnpm cli health
-
-# Run a single analysis (safe - no trades)
-pnpm cli analyze
-
-# Start the trading loop (safe - no trades)
-pnpm cli start --dry-run
+# Verify setup
+npm run cli health
 ```
+
+### Choose Your AI Provider
+
+**Option A: Anthropic Claude (Default)**
+```bash
+# In .env:
+ANTHROPIC_API_KEY=sk-ant-...
+```
+
+**Option B: EigenAI (Verifiable Inference)**
+```bash
+# In .env:
+EIGENAI_ENABLED=true
+EIGENAI_GRANT_PRIVATE_KEY=0x...  # Wallet with active EigenAI grant
+```
+
+See [EigenAI Configuration](#eigenai-verifiable-ai) below for details.
 
 ## ⚠️ Safety: DRY_RUN Mode
 
@@ -177,14 +213,17 @@ src/
 Create a `.env` file:
 
 ```bash
-# Required
-DATABASE_URL=postgresql://user:pass@host:5432/dbname
-ANTHROPIC_API_KEY=sk-ant-...
+# Required (one of these)
+DATABASE_URL=postgresql://agent:agent_dev_password@localhost:5432/aerodrome_agent
+ANTHROPIC_API_KEY=sk-ant-...  # OR use EigenAI below
+
+# EigenAI (alternative to Anthropic - verifiable inference)
+EIGENAI_ENABLED=true
+EIGENAI_GRANT_PRIVATE_KEY=0x...  # Wallet with active EigenAI grant
 
 # Trading (without these, agent runs in read-only mode)
 AGENT_PRIVATE_KEY=0x...
 BASE_RPC_URL=https://base-mainnet.g.alchemy.com/v2/YOUR_KEY
-ALCHEMY_API_KEY=...
 
 # Data sources (optional but recommended)
 COINGECKO_API_KEY=...   # For technical indicators
@@ -198,6 +237,62 @@ LANGFUSE_BASE_URL=https://cloud.langfuse.com
 # Safety
 DRY_RUN=true            # Set to block all trades
 ```
+
+## 🔐 EigenAI (Verifiable AI)
+
+EigenAI provides **cryptographically signed AI responses** via the [dTERMinal API](https://eigenarcade.com). Each response includes an ECDSA signature proving the output came from a specific AI model.
+
+### Why Use EigenAI?
+
+- **Verifiable inference**: Prove your agent's decisions came from AI
+- **Competition compliance**: Required for [Recall](https://recall.xyz) competitions
+- **Audit trail**: Store cryptographic proofs of AI-generated decisions
+
+### Setup
+
+1. **Get an EigenAI Grant**
+   - Visit [eigenai.xyz](https://eigenai.xyz) or contact the EigenAI team
+   - Create a wallet specifically for EigenAI grants (separate from your trading wallet)
+   - Fund the wallet with an active grant (allocation of inference tokens)
+
+2. **Configure Environment**
+   ```bash
+   # .env
+   EIGENAI_ENABLED=true
+   EIGENAI_GRANT_PRIVATE_KEY=0x...  # Grant wallet private key
+
+   # Optional overrides (defaults shown)
+   EIGENAI_API_URL=https://determinal-api.eigenarcade.com
+   EIGENAI_MODEL_ID=gpt-oss-120b-f16
+   ```
+
+3. **Verify Setup**
+   ```bash
+   npm run cli health
+   # Should show: EigenAI: ✅ Enabled
+   ```
+
+### How It Works
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│  1. Agent calls EigenAI API (with grant authentication)     │
+│  2. EigenAI returns response + ECDSA signature              │
+│  3. Agent verifies signature locally                        │
+│  4. Signature stored in database for audit trail            │
+│  5. Optional: Submit to Recall API for competition tracking │
+└─────────────────────────────────────────────────────────────┘
+```
+
+### Signature Verification
+
+The agent automatically:
+- Captures request/response pairs from each AI call
+- Verifies signatures using message reconstruction (`ChainID + ModelID + Prompt + Output`)
+- Recovers the signer address and validates against expected signer
+- Stores verification results in the database
+
+See `src/eigenai/` for implementation details.
 
 ## 📊 Supported Tokens
 
@@ -304,10 +399,71 @@ Optional [Langfuse](https://langfuse.com) integration provides:
 
 When Langfuse credentials are provided, traces automatically appear in your dashboard. Works in both development (realtime) and production (batched) modes.
 
+## 🚀 Deployment
+
+This agent is designed to run as a **24/7 background process**. Choose your deployment based on your needs:
+
+### Local Development
+
+```bash
+npm run setup              # One-command setup with Docker PostgreSQL
+npm run cli start --dry-run  # Start trading loop (simulated)
+```
+
+### Production Deployment
+
+| Platform | Cost | Best For |
+|----------|------|----------|
+| **[Railway](https://railway.app)** | $5/mo | Recommended - includes PostgreSQL |
+| **[Render](https://render.com)** | Free-$7/mo | Budget option (free DB expires in 90 days) |
+| **[Fly.io](https://fly.io)** | $0-10/mo | Global edge deployment |
+| **Vercel + Cron** | $0-20/mo | Scheduled iterations (not 24/7) |
+
+### Railway (Recommended)
+
+```bash
+# Install CLI
+npm i -g @railway/cli
+
+# Deploy
+railway login
+railway init
+railway add --database postgres
+railway up
+
+# Configure environment variables in Railway dashboard
+# Run migrations
+railway run npm run db:migrate
+```
+
+### Docker Deployment
+
+```bash
+# Build image
+docker build -t aerodrome-agent .
+
+# Run with external PostgreSQL
+docker run -d \
+  -e DATABASE_URL=postgresql://... \
+  -e ANTHROPIC_API_KEY=... \
+  aerodrome-agent
+```
+
+### Database Options
+
+| Provider | Free Tier | Notes |
+|----------|-----------|-------|
+| **Railway** | None | $5/mo, included with app deployment |
+| **Neon** | 512 MB | Serverless PostgreSQL, auto-scaling |
+| **Supabase** | 500 MB | Includes auth/storage/realtime |
+| **Render** | 90 days | Free expires, then $7/mo |
+
+See [docs/deployment-options.md](docs/deployment-options.md) for comprehensive deployment guides.
+
 ## 📄 License
 
 [MIT](LICENSE)
 
 ---
 
-Built with [Mastra](https://mastra.ai) and Claude Sonnet 4.5 on Base chain.
+Built with [Mastra](https://mastra.ai) on Base chain. Supports [Anthropic Claude](https://anthropic.com) and [EigenAI](https://eigenai.xyz) for verifiable inference.
