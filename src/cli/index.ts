@@ -6,6 +6,7 @@
  * - health: Check system health and configuration
  * - analyze: Run a single analysis iteration (DRY_RUN mode, no trades)
  * - start: Start the autonomous trading loop
+ * - recall-verify: Verify wallet ownership with Recall API (one-time)
  */
 import { Command } from 'commander'
 import 'dotenv/config'
@@ -13,6 +14,9 @@ import 'dotenv/config'
 import { healthCheck } from '../database/db.js'
 import startApplication from '../index.js'
 import { runSingleIteration } from '../loop/index.js'
+import { verifyWalletOwnership } from '../services/recall-verifier.js'
+import { validateRecallVerificationConfig, EIGENAI_CONFIG } from '../config/eigenai.js'
+import { isWalletConfigured, getWalletAddress } from '../execution/wallet.js'
 
 /** Options for the analyze command */
 interface AnalyzeOptions {
@@ -132,6 +136,46 @@ program
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Unknown error'
       console.error('❌ Failed to start:', errorMessage)
+      process.exit(1)
+    }
+  })
+
+program
+  .command('recall-verify')
+  .description('Verify wallet ownership with Recall API (one-time operation)')
+  .action(async () => {
+    console.log('🔐 Verifying wallet ownership with Recall API...\n')
+
+    try {
+      // 1. Validate configuration
+      validateRecallVerificationConfig()
+
+      if (!isWalletConfigured()) {
+        throw new Error('AGENT_PRIVATE_KEY is required')
+      }
+
+      // 2. Display config status
+      const walletAddress = getWalletAddress()
+      console.log('✅ Configuration validated')
+      console.log(`   - Recall API URL: ${EIGENAI_CONFIG.recallApiUrl}`)
+      console.log(`   - Trading Wallet:  ${walletAddress}`)
+      console.log()
+
+      // 3. Run verification
+      const result = await verifyWalletOwnership()
+
+      // 4. Display results
+      if (result.success) {
+        console.log('✅ Wallet verified successfully!')
+        console.log(`   - Wallet Address: ${result.walletAddress}`)
+        console.log('   - Verified with Recall API ✓')
+        console.log('\nYour wallet is now verified with Recall.')
+      } else {
+        throw new Error(result.error || 'Verification failed')
+      }
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error'
+      console.error('❌ Wallet verification failed:', errorMessage)
       process.exit(1)
     }
   })
