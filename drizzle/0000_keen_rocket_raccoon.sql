@@ -1,3 +1,21 @@
+CREATE TABLE "eigenai_inferences" (
+	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
+	"request_prompt" text NOT NULL,
+	"response_model" text NOT NULL,
+	"response_output" text NOT NULL,
+	"signature" text NOT NULL,
+	"prompt_tokens" integer,
+	"completion_tokens" integer,
+	"total_tokens" integer,
+	"swap_transaction_id" uuid,
+	"submitted_to_recall" boolean DEFAULT false NOT NULL,
+	"submitted_at" timestamp with time zone,
+	"recall_submission_id" uuid,
+	"inferred_at" timestamp with time zone DEFAULT now() NOT NULL,
+	"created_at" timestamp with time zone DEFAULT now() NOT NULL,
+	"updated_at" timestamp with time zone DEFAULT now() NOT NULL
+);
+--> statement-breakpoint
 CREATE TABLE "portfolio_snapshots" (
 	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
 	"timestamp" timestamp with time zone DEFAULT now() NOT NULL,
@@ -97,7 +115,11 @@ CREATE TABLE "trading_diary" (
 	"updated_at" timestamp with time zone DEFAULT now() NOT NULL
 );
 --> statement-breakpoint
+ALTER TABLE "eigenai_inferences" ADD CONSTRAINT "eigenai_inferences_swap_transaction_id_swap_transactions_id_fk" FOREIGN KEY ("swap_transaction_id") REFERENCES "public"."swap_transactions"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "swap_transactions" ADD CONSTRAINT "swap_transactions_diary_id_trading_diary_id_fk" FOREIGN KEY ("diary_id") REFERENCES "public"."trading_diary"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
+CREATE INDEX "idx_eigenai_submitted" ON "eigenai_inferences" USING btree ("submitted_to_recall");--> statement-breakpoint
+CREATE INDEX "idx_eigenai_inferred_at" ON "eigenai_inferences" USING btree ("inferred_at");--> statement-breakpoint
+CREATE INDEX "idx_eigenai_swap_transaction" ON "eigenai_inferences" USING btree ("swap_transaction_id");--> statement-breakpoint
 CREATE INDEX "idx_snapshots_timestamp" ON "portfolio_snapshots" USING btree ("timestamp");--> statement-breakpoint
 CREATE INDEX "idx_snapshots_iteration" ON "portfolio_snapshots" USING btree ("iteration_number");--> statement-breakpoint
 CREATE INDEX "idx_positions_token" ON "positions" USING btree ("token");--> statement-breakpoint

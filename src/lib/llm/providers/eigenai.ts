@@ -33,6 +33,16 @@ import {
 } from '../types'
 
 // =============================================================================
+// Two-Model Architecture Constants
+// =============================================================================
+
+/**
+ * Model used for reasoning/decision-making when tool limit is reached.
+ * qwen3-32b-128k-bf16 can produce text output (unlike gpt-oss-120b-f16).
+ */
+const REASONING_MODEL = 'qwen3-32b-128k-bf16'
+
+// =============================================================================
 // Types
 // =============================================================================
 
@@ -385,6 +395,211 @@ export function createEigenAIModel(options: CreateEigenAIModelOptions): Language
     }
   }
 
+  /**
+   * Call qwen model for reasoning/decision-making.
+   *
+   * Two-model architecture:
+   * - gpt-oss-120b-f16 handles tool calling (gathering data)
+   * - qwen3-32b-128k-bf16 handles reasoning (making decisions)
+   *
+   * This is called when the tool limit is reached to produce an actual
+   * reasoned decision instead of a synthetic one.
+   */
+  async function callQwenForDecision(
+    toolMessages: Array<{
+      role: string
+      content?: string | null
+      tool_calls?: unknown[]
+      tool_call_id?: string
+    }>,
+    systemPrompt: string | undefined
+  ): Promise<string> {
+    console.log('[EigenAI] Calling qwen for reasoning decision...')
+
+    // Extract the original user message for context
+    const userMessage = toolMessages.find((m) => m.role === 'user')?.content ?? ''
+
+    // Extract tool calls made (what was requested)
+    const toolCallsMade: string[] = []
+    for (const m of toolMessages) {
+      if (m.role === 'assistant' && m.tool_calls && Array.isArray(m.tool_calls)) {
+        for (const tc of m.tool_calls) {
+          const toolCall = tc as { function?: { name?: string; arguments?: string } }
+          if (toolCall.function?.name) {
+            const args = toolCall.function.arguments ?? '{}'
+            toolCallsMade.push(`- ${toolCall.function.name}(${args})`)
+          }
+        }
+      }
+    }
+
+    // Build a summarized context from tool results with their sources
+    const toolResults: string[] = []
+    for (const m of toolMessages) {
+      if (m.role === 'tool' && m.content) {
+        toolResults.push(m.content)
+      }
+    }
+    const toolResultsSummary = toolResults.join('\n\n---\n\n')
+
+    // Log what we're passing to qwen for debugging
+    console.log('[EigenAI] Context being passed to qwen:')
+    console.log(
+      `  - System prompt: ${systemPrompt ? 'YES (' + systemPrompt.length + ' chars)' : 'NO'}`
+    )
+    console.log(`  - User message: "${userMessage.substring(0, 100)}..."`)
+    console.log(`  - Tool calls made: ${toolCallsMade.length}`)
+    console.log(`  - Tool results: ${toolResults.length}`)
+    console.log(`  - Total context size: ${toolResultsSummary.length} chars`)
+
+    // Build the decision prompt with full context
+    const decisionPrompt = `Based on the following market data gathered from various tools, make a trading decision.
+
+## Original Request
+${userMessage}
+
+## Tools Called
+${toolCallsMade.length > 0 ? toolCallsMade.join('\n') : 'No tool calls recorded'}
+
+## Gathered Data (${toolResults.length} results)
+${toolResultsSummary}
+
+## Your Task
+Analyze this data and provide a JSON trading decision in the following format:
+{
+  "reasoning": "Your analysis of the market data...",
+  "trade_decisions": [
+    {
+      "token": "TOKEN_SYMBOL",
+      "action": "BUY" | "SELL" | "HOLD",
+      "amount_usd": number,
+      "rationale": "Why this specific action..."
+    }
+  ]
+}
+
+If no clear opportunity exists, use action "HOLD" for all positions.
+Respond ONLY with the JSON object, no additional text.`
+
+    // Build auth fields for qwen call
+    const authFields = await buildAuthFields()
+
+    // Determine endpoint
+    const endpoint = useApiKeyAuth
+      ? `${apiUrl}/v1/chat/completions`
+      : `${apiUrl}/api/chat/completions`
+
+    // Build messages for qwen (no tools, just reasoning)
+    const qwenMessages: Array<{ role: string; content: string }> = []
+
+    // Include system prompt if available
+    if (systemPrompt) {
+      qwenMessages.push({
+        role: 'system',
+        content:
+          systemPrompt +
+          '\n\nYou are now in DECISION MODE. Based on the gathered data, make your final trading decision.',
+      })
+    }
+
+    // Add the decision prompt as user message
+    qwenMessages.push({
+      role: 'user',
+      content: decisionPrompt,
+    })
+
+    try {
+      const response = await fetch(endpoint, {
+        method: 'POST',
+        headers: buildHeaders(),
+        body: JSON.stringify({
+          messages: qwenMessages,
+          model: REASONING_MODEL,
+          max_tokens: 2048,
+          temperature: 0.3, // Lower temperature for more deterministic decisions
+          // NO tools - we want qwen to just reason and output text
+          ...authFields,
+        }),
+      })
+
+      if (!response.ok) {
+        const errorBody = await response.text()
+        console.error('[EigenAI] Qwen reasoning call failed:', response.status, errorBody)
+        // Fall back to synthetic decision if qwen fails
+        return JSON.stringify({
+          reasoning: 'Reasoning model unavailable. Defaulting to HOLD.',
+          trade_decisions: [
+            {
+              token: 'ALL',
+              action: 'HOLD',
+              amount_usd: 0,
+              rationale: 'Reasoning model call failed - holding positions for safety',
+            },
+          ],
+        })
+      }
+
+      const data = (await response.json()) as EigenAIChatCompletionResponse
+      const qwenContent = data.choices?.[0]?.message?.content ?? ''
+
+      console.log('[EigenAI] Qwen reasoning response:', qwenContent.substring(0, 200) + '...')
+
+      // Build verification data from qwen's response
+      // This is the important inference - the actual trading decision
+      if (data.signature && onVerification) {
+        const verificationData: EigenAIVerificationData = {
+          requestPrompt: decisionPrompt, // The reasoning prompt we sent
+          responseModel: data.model || REASONING_MODEL,
+          responseOutput: qwenContent,
+          signature: data.signature,
+          usage: {
+            promptTokens: data.usage?.prompt_tokens ?? 0,
+            completionTokens: data.usage?.completion_tokens ?? 0,
+            totalTokens: data.usage?.total_tokens ?? 0,
+          },
+        }
+
+        console.log('[EigenAI] Capturing qwen reasoning verification data for Recall submission')
+
+        // Await the callback for qwen reasoning - this is critical for database persistence
+        try {
+          await onVerification(verificationData)
+        } catch (err: unknown) {
+          console.error('[EigenAI] Qwen verification callback error:', err)
+        }
+      }
+
+      // Return the qwen response (should be JSON)
+      return (
+        qwenContent ||
+        JSON.stringify({
+          reasoning: 'Qwen returned empty response. Defaulting to HOLD.',
+          trade_decisions: [
+            {
+              token: 'ALL',
+              action: 'HOLD',
+              amount_usd: 0,
+              rationale: 'Empty response from reasoning model',
+            },
+          ],
+        })
+      )
+    } catch (error) {
+      console.error('[EigenAI] Qwen reasoning call error:', error)
+      return JSON.stringify({
+        reasoning: 'Reasoning model error. Defaulting to HOLD.',
+        trade_decisions: [
+          {
+            token: 'ALL',
+            action: 'HOLD',
+            amount_usd: 0,
+            rationale: 'Error calling reasoning model - holding for safety',
+          },
+        ],
+      })
+    }
+  }
+
   return {
     specificationVersion: 'v2',
     provider: 'eigenai',
@@ -434,31 +649,31 @@ export function createEigenAIModel(options: CreateEigenAIModelOptions): Language
         }
       }
 
-      // Count tool results - if we have too many, force the model to stop calling tools
-      // gpt-oss-120b-f16 doesn't know when to stop AND can't produce text output
-      // So when limit is reached, we synthesize a decision based on the tool calls made
+      // Count tool results - if we have too many, switch to reasoning model
+      // gpt-oss-120b-f16 is great at tool calling but can't produce text decisions
+      // So when limit is reached, we call qwen to analyze the gathered data and decide
       const MAX_TOOL_RESULTS = 8
       const toolResultCount = messages.filter((m) => m.role === 'tool').length
 
       if (toolResultCount >= MAX_TOOL_RESULTS) {
         console.log(
-          `[EigenAI] Tool result limit reached (${toolResultCount}/${MAX_TOOL_RESULTS}), synthesizing decision`
+          `[EigenAI] Tool result limit reached (${toolResultCount}/${MAX_TOOL_RESULTS}), switching to reasoning model`
         )
 
-        // Check if executeSwap was called - if so, trade was executed
+        // Check if executeSwap was already called - if so, just confirm the trade
         const executeSwapCalled = messages.some(
           (m) =>
             m.role === 'assistant' && m.tool_calls?.some((tc) => tc.function.name === 'executeSwap')
         )
 
-        // Synthesize a decision based on what happened
-        let syntheticDecision: string
+        let reasonedDecision: string
         if (executeSwapCalled) {
-          syntheticDecision = JSON.stringify({
+          // Trade was already executed, just confirm
+          reasonedDecision = JSON.stringify({
             reasoning: 'Trade was executed via executeSwap tool call.',
             trade_decisions: [
               {
-                token: 'UNKNOWN',
+                token: 'EXECUTED',
                 action: 'EXECUTED',
                 amount_usd: 0,
                 rationale: 'Trade executed - see swap transaction logs for details',
@@ -466,28 +681,18 @@ export function createEigenAIModel(options: CreateEigenAIModelOptions): Language
             ],
           })
         } else {
-          syntheticDecision = JSON.stringify({
-            reasoning:
-              'After gathering market data (prices, indicators, sentiment, pool metrics), no clear trading opportunity was identified. Holding current positions.',
-            trade_decisions: [
-              {
-                token: 'ALL',
-                action: 'HOLD',
-                amount_usd: 0,
-                rationale: 'Insufficient conviction for trade based on gathered data',
-              },
-            ],
-          })
+          // Call qwen for actual reasoning about whether to trade
+          // Extract system prompt from original messages
+          const systemPrompt = messages.find((m) => m.role === 'system')?.content ?? undefined
+          reasonedDecision = await callQwenForDecision(messages, systemPrompt)
         }
 
-        // Return synthetic response - don't make another API call
-        const syntheticContent: LanguageModelV2Content[] = [
-          { type: 'text', text: syntheticDecision },
-        ]
+        // Return reasoned response
+        const reasonedContent: LanguageModelV2Content[] = [{ type: 'text', text: reasonedDecision }]
 
         return {
-          content: syntheticContent,
-          text: syntheticDecision,
+          content: reasonedContent,
+          text: reasonedDecision,
           finishReason: 'stop' as const,
           usage: {
             inputTokens: 0,
@@ -495,15 +700,17 @@ export function createEigenAIModel(options: CreateEigenAIModelOptions): Language
             totalTokens: 0,
           },
           response: {
-            id: `synthetic-${Date.now()}`,
+            id: `reasoned-${Date.now()}`,
             timestamp: new Date(),
-            modelId,
+            modelId: executeSwapCalled ? modelId : REASONING_MODEL,
             headers: {},
           },
           warnings: [],
           providerMetadata: {
             eigenai: {
-              synthetic: true,
+              twoModelArchitecture: true,
+              toolCallingModel: modelId,
+              reasoningModel: executeSwapCalled ? 'N/A' : REASONING_MODEL,
               toolResultCount,
               executeSwapCalled,
             },
@@ -587,30 +794,9 @@ export function createEigenAIModel(options: CreateEigenAIModelOptions): Language
         })
       }
 
-      // For verification, combine text and tool call info
-      const outputForVerification = textContent || JSON.stringify(toolCalls)
-
-      // Build verification data
-      const verificationData: EigenAIVerificationData = {
-        requestPrompt: buildRequestPrompt(messages),
-        responseModel: data.model,
-        responseOutput: outputForVerification,
-        signature: data.signature,
-        walletAddress,
-        usage: {
-          promptTokens: data.usage.prompt_tokens,
-          completionTokens: data.usage.completion_tokens,
-          totalTokens: data.usage.total_tokens,
-        },
-      }
-
-      // Call verification callback if provided
-      if (onVerification) {
-        // Fire-and-forget, don't block response
-        Promise.resolve(onVerification(verificationData)).catch((err: unknown) => {
-          console.error('EigenAI verification callback error:', err)
-        })
-      }
+      // NOTE: We do NOT capture verification data for gpt-oss tool calls.
+      // Only the qwen reasoning decision (in callQwenForDecision) is saved for Recall.
+      // This is because gpt-oss calls are just data gathering, not trading decisions.
 
       const warnings: LanguageModelV2CallWarning[] = []
 
@@ -633,10 +819,7 @@ export function createEigenAIModel(options: CreateEigenAIModelOptions): Language
         providerMetadata: {
           eigenai: {
             signature: data.signature,
-            walletAddress: verificationData.walletAddress,
-            requestPrompt: verificationData.requestPrompt,
-            responseModel: verificationData.responseModel,
-            responseOutput: verificationData.responseOutput,
+            model: data.model,
           },
         },
       }
@@ -746,7 +929,6 @@ export function createEigenAIModel(options: CreateEigenAIModelOptions): Language
                   responseModel,
                   responseOutput: fullContent,
                   signature: finalSignature,
-                  walletAddress,
                   usage: {
                     promptTokens: finalUsage.inputTokens ?? 0,
                     completionTokens: finalUsage.outputTokens ?? 0,

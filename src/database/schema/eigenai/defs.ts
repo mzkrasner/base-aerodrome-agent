@@ -42,9 +42,6 @@ export const eigenaiInferences = pgTable(
     // Cryptographic signature from EigenAI (65-byte hex)
     signature: text('signature').notNull(),
 
-    // Wallet that signed the grant message
-    walletAddress: text('wallet_address').notNull(),
-
     // Token usage
     promptTokens: integer('prompt_tokens'),
     completionTokens: integer('completion_tokens'),
@@ -66,9 +63,6 @@ export const eigenaiInferences = pgTable(
   (table) => [
     // Query unsubmitted inferences for batch submission
     index('idx_eigenai_submitted').on(table.submittedToRecall),
-
-    // Query by wallet
-    index('idx_eigenai_wallet').on(table.walletAddress),
 
     // Query by time for batch submission
     index('idx_eigenai_inferred_at').on(table.inferredAt),

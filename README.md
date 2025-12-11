@@ -230,6 +230,50 @@ EigenAI supports two authentication methods:
 
 If both are set, API key takes precedence.
 
+#### EigenAI Two-Model Architecture
+
+EigenAI uses a specialized **two-model architecture** for agentic workflows:
+
+```
+┌──────────────────────────────────────────────────────────────────┐
+│                    EigenAI AGENTIC FLOW                          │
+├──────────────────────────────────────────────────────────────────┤
+│                                                                  │
+│  ┌─────────────────────────────────────────────────────────────┐ │
+│  │  MODEL 1: gpt-oss-120b-f16 (Tool Orchestration)             │ │
+│  │                                                             │ │
+│  │  • Executes tool calls iteratively                          │ │
+│  │  • Gathers market data, prices, indicators, sentiment       │ │
+│  │  • Up to 8 tool calls to build context                      │ │
+│  │  • Optimized for function calling, NOT text generation      │ │
+│  └─────────────────────────────────────────────────────────────┘ │
+│                           │                                      │
+│                           ▼                                      │
+│  ┌─────────────────────────────────────────────────────────────┐ │
+│  │  MODEL 2: qwen3-32b-128k-bf16 (Reasoning & Decision)        │ │
+│  │                                                             │ │
+│  │  • Receives ALL gathered context from tool calls            │ │
+│  │  • Analyzes data and produces structured JSON decision      │ │
+│  │  • Returns BUY/SELL/HOLD with detailed reasoning            │ │
+│  │  • Signature captured for verifiable inference (Recall)     │ │
+│  └─────────────────────────────────────────────────────────────┘ │
+│                                                                  │
+└──────────────────────────────────────────────────────────────────┘
+```
+
+**Why two models?**
+
+| Model | Strength | Limitation |
+|-------|----------|------------|
+| `gpt-oss-120b-f16` | Excellent at tool calling | Cannot produce text output or complex reasoning |
+| `qwen3-32b-128k-bf16` | Strong reasoning, structured output | Used only for final decision |
+
+This architecture ensures:
+- ✅ **Efficient tool orchestration** - gpt-oss handles data gathering
+- ✅ **Quality decisions** - qwen provides sophisticated market analysis  
+- ✅ **Verifiable inference** - Only the final reasoning decision (from qwen) is signed and stored for Recall submission
+- ✅ **No infinite loops** - Automatic handoff after 8 tool calls prevents stuck agents
+
 ## 📊 Supported Tokens
 
 ### DeFi Tokens

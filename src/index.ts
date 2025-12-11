@@ -2,6 +2,7 @@ import 'dotenv/config'
 
 import { closeConnection, healthCheck } from './database/db.js'
 import { startTradingLoop } from './loop/index.js'
+import { initializeEigenAIInferenceTracking } from './services/eigenai-inference.service.js'
 
 /**
  * Aerodrome Trading Agent
@@ -26,7 +27,27 @@ async function initializeDatabase(): Promise<void> {
 async function validateEnvironment(): Promise<void> {
   console.log('🔍 Validating environment configuration...')
 
-  const requiredEnvVars = ['DATABASE_URL', 'ANTHROPIC_API_KEY']
+  // Base required vars
+  const requiredEnvVars = ['DATABASE_URL']
+
+  // LLM provider validation
+  const llmProvider = process.env.LLM_PROVIDER || 'anthropic'
+  console.log(`🤖 LLM Provider: ${llmProvider}`)
+
+  switch (llmProvider) {
+    case 'anthropic':
+      requiredEnvVars.push('ANTHROPIC_API_KEY')
+      break
+    case 'openai':
+      requiredEnvVars.push('OPENAI_API_KEY')
+      break
+    case 'eigenai':
+      // EigenAI requires either API key or private key
+      if (!process.env.EIGENAI_API_KEY && !process.env.EIGENAI_PRIVATE_KEY) {
+        throw new Error('EigenAI requires either EIGENAI_API_KEY or EIGENAI_PRIVATE_KEY')
+      }
+      break
+  }
 
   const optionalEnvVars = ['AGENT_PRIVATE_KEY', 'BASE_RPC_URL', 'GROK_API_KEY']
 
@@ -77,7 +98,12 @@ async function startApplication(): Promise<void> {
     // Step 2: Initialize database
     await initializeDatabase()
 
-    // Step 3: Set up signal handlers
+    // Step 3: Initialize EigenAI inference tracking (if using EigenAI)
+    if (process.env.LLM_PROVIDER === 'eigenai') {
+      initializeEigenAIInferenceTracking()
+    }
+
+    // Step 4: Set up signal handlers
     process.on('SIGINT', gracefulShutdown)
     process.on('SIGTERM', gracefulShutdown)
     process.on('uncaughtException', (error) => {
@@ -91,7 +117,7 @@ async function startApplication(): Promise<void> {
 
     console.log('🎉 Aerodrome Trading Agent initialized!')
 
-    // Step 4: Start the autonomous trading loop
+    // Step 5: Start the autonomous trading loop
     await startTradingLoop()
 
     // Keep the process running with periodic health checks

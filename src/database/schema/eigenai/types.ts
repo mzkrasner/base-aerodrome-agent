@@ -22,8 +22,6 @@ export interface EigenAIInferenceData {
   responseOutput: string
   /** 65-byte hex signature from EigenAI */
   signature: string
-  /** Wallet address that signed the grant message */
-  walletAddress: string
   /** Token usage from the response */
   usage?: {
     promptTokens: number

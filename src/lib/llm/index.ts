@@ -73,6 +73,19 @@ export function setEigenAIVerificationCallback(
 }
 
 /**
+ * Dynamic verification callback wrapper.
+ *
+ * This function is passed to the EigenAI provider and looks up the actual
+ * callback at call time. This allows the callback to be set AFTER the
+ * model is created (e.g., after app initialization).
+ */
+function dynamicVerificationCallback(data: EigenAIVerificationData): void | Promise<void> {
+  if (eigenaiVerificationCallback) {
+    return eigenaiVerificationCallback(data)
+  }
+}
+
+/**
  * Get the configured LLM model.
  *
  * Reads configuration from environment variables and returns the appropriate
@@ -126,7 +139,9 @@ export function getModel(overrides?: {
         modelId,
         apiKey,
         privateKey,
-        onVerification: eigenaiVerificationCallback,
+        // Use dynamic callback that looks up the actual callback at call time
+        // This allows the callback to be set AFTER the model is created
+        onVerification: dynamicVerificationCallback,
       })
     }
 

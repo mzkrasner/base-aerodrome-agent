@@ -170,8 +170,6 @@ export interface EigenAIVerificationData {
   responseOutput: string
   /** Cryptographic signature from EigenAI */
   signature: string
-  /** Wallet address that made the request */
-  walletAddress: string
   /** Token usage */
   usage: {
     promptTokens: number
