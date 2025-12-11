@@ -158,3 +158,5 @@ test-output/
 local/
 .local/
 dev-data/ 
+
+.agent/

@@ -3,6 +3,7 @@
  * @description Manages test database lifecycle
  */
 import { config } from 'dotenv'
+
 import { sql } from 'drizzle-orm'
 import path from 'path'
 import { Client } from 'pg'

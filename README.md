@@ -101,6 +101,7 @@ This project follows the **correct agentic pattern** where the LLM does the work
 | `positions`           | Current holdings with cost basis for P&L         |
 | `portfolio_snapshots` | Balance history for performance tracking         |
 | `price_history`       | Cached prices for retrospective analysis         |
+| `eigenai.inferences`  | EigenAI verification data (when using EigenAI)   |
 
 ### Portfolio Performance Tracking
 
@@ -157,10 +158,16 @@ src/
 │   └── sentiment/          # X/Twitter sentiment tool
 ├── services/
 │   └── performance-tracker.ts  # Cost basis and P&L calculations
+├── lib/
+│   └── llm/                # LLM provider abstraction
+│       ├── providers/      # Custom providers (EigenAI)
+│       ├── gateways/       # Mastra gateway implementations
+│       └── index.ts        # Unified getModel() interface
 ├── loop/
 │   └── trading-loop.ts     # Simple loop calling agent.generate()
 ├── database/
 │   ├── schema/trading/     # Drizzle schema for trading data
+│   ├── schema/eigenai/     # EigenAI verification data schema
 │   └── repositories/       # Data access methods
 ├── config/
 │   ├── tokens.ts           # Token addresses and metadata
@@ -169,6 +176,7 @@ src/
 │   └── wallet.ts           # Wallet and signing utilities (Alchemy SDK)
 ├── cli/
 │   └── index.ts            # CLI commands (health, analyze, start)
+├── env.ts                  # Environment loader (must import first)
 └── index.ts                # Application entry point
 ```
 
@@ -179,7 +187,16 @@ Create a `.env` file:
 ```bash
 # Required
 DATABASE_URL=postgresql://user:pass@host:5432/dbname
-ANTHROPIC_API_KEY=sk-ant-...
+
+# LLM Provider (pick one)
+LLM_PROVIDER=anthropic   # Options: anthropic | openai | eigenai
+
+# Provider API Keys (based on LLM_PROVIDER choice)
+ANTHROPIC_API_KEY=sk-ant-...     # For Anthropic
+OPENAI_API_KEY=sk-...            # For OpenAI
+EIGENAI_API_KEY=...              # For EigenAI (simple auth)
+# OR
+EIGENAI_PRIVATE_KEY=0x...        # For EigenAI (verifiable inference)
 
 # Trading (without these, agent runs in read-only mode)
 AGENT_PRIVATE_KEY=0x...
@@ -193,6 +210,69 @@ GROK_API_KEY=...        # For X/Twitter sentiment
 # Safety
 DRY_RUN=true            # Set to block all trades
 ```
+
+### LLM Provider Options
+
+| Provider | Env Var | Model | Notes |
+|----------|---------|-------|-------|
+| **Anthropic** (default) | `ANTHROPIC_API_KEY` | Claude Sonnet 4.5 | Best overall performance |
+| **OpenAI** | `OPENAI_API_KEY` | GPT-4o | Alternative option |
+| **EigenAI** | `EIGENAI_API_KEY` or `EIGENAI_PRIVATE_KEY` | gpt-oss-120b-f16 | Verifiable AI inference |
+
+#### EigenAI Authentication
+
+EigenAI supports two authentication methods:
+
+| Method | Env Var | API Endpoint | Use Case |
+|--------|---------|--------------|----------|
+| **API Key** (simpler) | `EIGENAI_API_KEY` | eigenai.eigencloud.xyz | Quick setup |
+| **Wallet Signing** (verifiable) | `EIGENAI_PRIVATE_KEY` | determinal-api.eigenarcade.com | Cryptographic proof of inference |
+
+If both are set, API key takes precedence.
+
+#### EigenAI Two-Model Architecture
+
+EigenAI uses a specialized **two-model architecture** for agentic workflows:
+
+```
+┌──────────────────────────────────────────────────────────────────┐
+│                    EigenAI AGENTIC FLOW                          │
+├──────────────────────────────────────────────────────────────────┤
+│                                                                  │
+│  ┌─────────────────────────────────────────────────────────────┐ │
+│  │  MODEL 1: gpt-oss-120b-f16 (Tool Orchestration)             │ │
+│  │                                                             │ │
+│  │  • Executes tool calls iteratively                          │ │
+│  │  • Gathers market data, prices, indicators, sentiment       │ │
+│  │  • Up to 8 tool calls to build context                      │ │
+│  │  • Optimized for function calling, NOT text generation      │ │
+│  └─────────────────────────────────────────────────────────────┘ │
+│                           │                                      │
+│                           ▼                                      │
+│  ┌─────────────────────────────────────────────────────────────┐ │
+│  │  MODEL 2: qwen3-32b-128k-bf16 (Reasoning & Decision)        │ │
+│  │                                                             │ │
+│  │  • Receives ALL gathered context from tool calls            │ │
+│  │  • Analyzes data and produces structured JSON decision      │ │
+│  │  • Returns BUY/SELL/HOLD with detailed reasoning            │ │
+│  │  • Signature captured for verifiable inference (Recall)     │ │
+│  └─────────────────────────────────────────────────────────────┘ │
+│                                                                  │
+└──────────────────────────────────────────────────────────────────┘
+```
+
+**Why two models?**
+
+| Model | Strength | Limitation |
+|-------|----------|------------|
+| `gpt-oss-120b-f16` | Excellent at tool calling | Cannot produce text output or complex reasoning |
+| `qwen3-32b-128k-bf16` | Strong reasoning, structured output | Used only for final decision |
+
+This architecture ensures:
+- ✅ **Efficient tool orchestration** - gpt-oss handles data gathering
+- ✅ **Quality decisions** - qwen provides sophisticated market analysis  
+- ✅ **Verifiable inference** - Only the final reasoning decision (from qwen) is signed and stored for Recall submission
+- ✅ **No infinite loops** - Automatic handoff after 8 tool calls prevents stuck agents
 
 ## 📊 Supported Tokens
 
@@ -295,4 +375,4 @@ pnpm mastra:dev     # Interactive UI at localhost:4111
 
 ---
 
-Built with [Mastra](https://mastra.ai) and Claude Sonnet 4.5 on Base chain.
+Built with [Mastra](https://mastra.ai) on Base chain. Supports Anthropic, OpenAI, and EigenAI LLM providers.
