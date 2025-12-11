@@ -11,8 +11,11 @@
  * - Agent decides WHEN it has enough information
  */
 import { anthropic } from '@ai-sdk/anthropic'
+import { createOpenAI } from '@ai-sdk/openai'
 import { Agent } from '@mastra/core/agent'
 
+import { EIGENAI_CONFIG } from '../config/eigenai.js'
+import { getAuthenticationFields } from '../eigenai/grant-authenticator.js'
 import {
   executeSwapTool,
   getIndicatorsTool,
@@ -152,13 +155,97 @@ After gathering data, provide your decision as JSON:
 You are autonomous. Decide what data you need and what it means.`
 
 /**
+ * Create custom fetch wrapper for EigenAI grant authentication
+ *
+ * This wrapper intercepts API requests and adds the required grant authentication
+ * fields to the request body: grantMessage, grantSignature, and walletAddress.
+ *
+ * The wrapper is only used when EIGENAI_CONFIG.enabled is true.
+ */
+async function createAuthenticatedFetch(): Promise<typeof fetch> {
+  // Get grant authentication fields
+  const authFields = await getAuthenticationFields()
+
+  // Return custom fetch function (cast to satisfy TypeScript)
+  const customFetch: typeof fetch = async (input, init) => {
+    // Only modify POST requests to chat completions
+    if (init?.method === 'POST' && init?.body) {
+      try {
+        // Parse the request body
+        const body = JSON.parse(init.body as string)
+
+        // Add grant authentication fields and ensure max_tokens is set
+        // EigenAI defaults to 128 tokens which truncates responses
+        const authenticatedBody = {
+          ...body,
+          ...authFields,
+          max_tokens: body.max_tokens || 4096,
+        }
+
+        // Create new init with modified body
+        const authenticatedInit: RequestInit = {
+          ...init,
+          body: JSON.stringify(authenticatedBody),
+        }
+
+        return fetch(input, authenticatedInit)
+      } catch (error) {
+        // If JSON parsing fails, pass through unmodified
+        console.warn('Failed to add grant authentication to request:', error)
+        return fetch(input, init)
+      }
+    }
+
+    // Pass through non-POST requests or requests without body
+    return fetch(input, init)
+  }
+
+  return customFetch
+}
+
+/**
+ * Get the configured LLM model
+ *
+ * Returns either:
+ * - EigenAI dTERMinal (OpenAI-compatible) if EIGENAI_CONFIG.enabled is true
+ * - Anthropic Claude Sonnet 4.5 otherwise (default)
+ *
+ * When using EigenAI, a custom fetch wrapper adds grant authentication fields
+ * to all API requests.
+ */
+async function getModel() {
+  if (EIGENAI_CONFIG.enabled) {
+    // Create custom fetch with grant authentication
+    const authenticatedFetch = await createAuthenticatedFetch()
+
+    // Create OpenAI provider configured for dTERMinal API
+    // Use .chat() to get the chat completions endpoint (/chat/completions)
+    // instead of the default responses API (/responses) which dTERMinal doesn't support
+    const eigenaiProvider = createOpenAI({
+      baseURL: `${EIGENAI_CONFIG.apiUrl}/api`,
+      fetch: authenticatedFetch,
+      apiKey: 'not-required', // EigenAI uses grant auth, not API key
+    })
+
+    // Return the chat model (uses /chat/completions endpoint)
+    return eigenaiProvider.chat(EIGENAI_CONFIG.modelId)
+  }
+
+  // Default: Anthropic Claude
+  return anthropic('claude-sonnet-4-5')
+}
+
+/**
  * The main trading agent
  * Uses Mastra's agent pattern with maxSteps for autonomous iteration
+ *
+ * The model is configured asynchronously to support EigenAI grant authentication.
+ * This means the agent must be awaited before use in some contexts.
  */
 export const aerodromeAgent = new Agent({
   name: 'aerodrome-trader',
   instructions: SYSTEM_PROMPT,
-  model: anthropic('claude-sonnet-4-5'),
+  model: async () => await getModel(),
   tools: {
     getIndicators: getIndicatorsTool,
     getQuote: getQuoteTool,

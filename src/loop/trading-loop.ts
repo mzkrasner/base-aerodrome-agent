@@ -3,7 +3,7 @@
  *
  * Simple loop that:
  * 1. Gets recent trading history from diary (for context)
- * 2. Calls agent.generateLegacy() and lets the agent iterate
+ * 2. Calls agent.generate() and lets the agent iterate
  * 3. Logs every decision to the diary
  *
  * Pattern from aerodrome-mastra-implementation-guide.md:
@@ -11,9 +11,14 @@
  * > Build an agent that reasons about which tools it needs.
  */
 import { aerodromeAgent } from '../agents/trading.agent.js'
+import { EIGENAI_CONFIG } from '../config/eigenai.js'
 import { DEFAULT_TRADING_PAIRS, TRADING_CONFIG } from '../config/index.js'
-import { tradingDiaryRepo } from '../database/repositories/index.js'
+import { eigenaiSignaturesRepo, tradingDiaryRepo } from '../database/repositories/index.js'
 import type { DiaryEntryForContext } from '../database/schema/trading/types.js'
+import {
+  isEigenAIEnabled,
+  processAndVerifyLastResponse,
+} from '../eigenai/index.js'
 import { getAllBalances } from '../execution/wallet.js'
 import { performanceTracker } from '../services/performance-tracker.js'
 
@@ -166,11 +171,11 @@ Return your decision as JSON with this structure:
   let responseText = ''
 
   try {
-    const response = await aerodromeAgent.generateLegacy(prompt, {
+    const response = await aerodromeAgent.generate(prompt, {
       maxSteps: TRADING_CONFIG.maxAgentSteps,
       onStepFinish: ({ toolCalls }) => {
         if (toolCalls?.length) {
-          const toolNames = toolCalls.map((t) => t.toolName).join(', ')
+          const toolNames = toolCalls.map((t) => t.payload.toolName).join(', ')
           console.log(`  📞 Agent called: ${toolNames}`)
         }
       },
@@ -178,6 +183,31 @@ Return your decision as JSON with this structure:
 
     responseText = response.text
     console.log(`\n📊 Agent Response:\n${responseText}`)
+
+    // If EigenAI is enabled, capture and verify signature
+    if (isEigenAIEnabled()) {
+      try {
+        const signatureData = await processAndVerifyLastResponse(ctx.iterationNumber)
+        if (signatureData) {
+          // Store signature in database
+          await eigenaiSignaturesRepo.createSignature({
+            iterationNumber: ctx.iterationNumber,
+            signature: signatureData.signature,
+            modelId: signatureData.modelId,
+            requestHash: signatureData.requestHash,
+            responseHash: signatureData.responseHash,
+            localVerificationStatus: signatureData.localVerificationStatus as 'verified' | 'invalid' | 'error',
+            recoveredSigner: signatureData.recoveredSigner,
+            expectedSigner: EIGENAI_CONFIG.expectedSigner,
+            verificationError: signatureData.verificationError,
+            submittedToRecall: false,
+          })
+          console.log(`🔐 EigenAI signature captured and ${signatureData.localVerificationStatus}`)
+        }
+      } catch (sigError) {
+        console.warn(`⚠️ Failed to capture EigenAI signature: ${sigError}`)
+      }
+    }
 
     // Parse the agent's decision and log to diary
     const decision = parseAgentDecision(responseText)
