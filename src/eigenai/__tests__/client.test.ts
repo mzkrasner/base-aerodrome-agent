@@ -3,7 +3,7 @@
  *
  * Tests for capturing and processing EigenAI API responses.
  */
-import { Wallet } from 'ethers'
+import { HDNodeWallet, Wallet } from 'ethers'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 import type {
@@ -20,7 +20,7 @@ import {
 } from '../client.js'
 
 describe('EigenAI Client', () => {
-  let testWallet: Wallet
+  let testWallet: HDNodeWallet
   let mockRequest: ChatCompletionRequest
   let mockResponse: ChatCompletionResponse
 

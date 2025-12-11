@@ -3,7 +3,7 @@
  *
  * Tests for ECDSA signature verification of EigenAI dTERMinal API responses.
  */
-import { Wallet } from 'ethers'
+import { HDNodeWallet, Wallet } from 'ethers'
 import { beforeEach, describe, expect, it } from 'vitest'
 
 import type {
@@ -18,7 +18,7 @@ import {
 } from '../signature-verifier.js'
 
 describe('Signature Verifier', () => {
-  let testWallet: Wallet
+  let testWallet: HDNodeWallet
   let mockRequest: ChatCompletionRequest
   let mockResponse: ChatCompletionResponse
 

@@ -3,7 +3,7 @@
  *
  * Tests for the dTERMinal API grant authentication flow.
  */
-import { Wallet } from 'ethers'
+import { HDNodeWallet, Wallet } from 'ethers'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 vi.mock('../../config/eigenai.js', () => ({
@@ -168,7 +168,7 @@ class TestGrantAuthenticator {
 }
 
 describe('GrantAuthenticator', () => {
-  let testWallet: Wallet
+  let testWallet: HDNodeWallet
   let authenticator: TestGrantAuthenticator
 
   beforeEach(() => {
