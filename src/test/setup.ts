@@ -3,6 +3,7 @@
  * @description Global test configuration (runs before each test file)
  */
 import { config } from 'dotenv'
+
 import path from 'path'
 import { afterAll, afterEach, beforeEach } from 'vitest'
 

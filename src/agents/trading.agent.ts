@@ -9,10 +9,18 @@
  * - Agent decides how to INTERPRET the data
  * - Agent decides WHICH tools to call
  * - Agent decides WHEN it has enough information
+ *
+ * LLM Provider Configuration:
+ * - Set LLM_PROVIDER env var to switch providers ('anthropic' | 'openai' | 'eigenai')
+ * - Default: 'anthropic' with 'claude-sonnet-4-5'
+ * - EigenAI provides verifiable inference with cryptographic signatures
  */
-import { anthropic } from '@ai-sdk/anthropic'
+// Load environment variables FIRST - this import MUST come before anything else
+import '../env.js'
+
 import { Agent } from '@mastra/core/agent'
 
+import { getModel } from '../lib/llm/index.js'
 import {
   executeSwapTool,
   getIndicatorsTool,
@@ -158,7 +166,7 @@ You are autonomous. Decide what data you need and what it means.`
 export const aerodromeAgent = new Agent({
   name: 'aerodrome-trader',
   instructions: SYSTEM_PROMPT,
-  model: anthropic('claude-sonnet-4-5'),
+  model: getModel(),
   tools: {
     getIndicators: getIndicatorsTool,
     getQuote: getQuoteTool,

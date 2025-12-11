@@ -6,6 +6,8 @@
   "printWidth": 100,
   "arrowParens": "always",
   "importOrder": [
+    "^.*/env(.js)?$",
+    "^dotenv",
     "^.*.css",
     "<THIRD_PARTY_MODULES>",
     "^@/(.*)$",

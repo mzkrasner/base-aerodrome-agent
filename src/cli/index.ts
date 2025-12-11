@@ -7,8 +7,9 @@
  * - analyze: Run a single analysis iteration (DRY_RUN mode, no trades)
  * - start: Start the autonomous trading loop
  */
-import { Command } from 'commander'
 import 'dotenv/config'
+
+import { Command } from 'commander'
 
 import { healthCheck } from '../database/db.js'
 import startApplication from '../index.js'
