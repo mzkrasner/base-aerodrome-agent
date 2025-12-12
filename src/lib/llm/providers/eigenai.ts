@@ -447,7 +447,7 @@ export function createEigenAIModel(options: CreateEigenAIModelOptions): Language
     console.log(
       `  - System prompt: ${systemPrompt ? 'YES (' + systemPrompt.length + ' chars)' : 'NO'}`
     )
-    console.log(`  - User message: "${userMessage.substring(0, 100)}..."`)
+    console.log(`  - User message: "${userMessage.substring(0, 200)}..."`)
     console.log(`  - Tool calls made: ${toolCallsMade.length}`)
     console.log(`  - Tool results: ${toolResults.length}`)
     console.log(`  - Total context size: ${toolResultsSummary.length} chars`)
@@ -465,7 +465,11 @@ ${toolCallsMade.length > 0 ? toolCallsMade.join('\n') : 'No tool calls recorded'
 ${toolResultsSummary}
 
 ## Your Task
-Analyze this data and provide a JSON trading decision in the following format:
+Analyze this data and provide a JSON trading decision.
+
+IMPORTANT: Do NOT use <think> tags or any reasoning prefix. Output ONLY the raw JSON object directly.
+
+Required JSON format:
 {
   "reasoning": "Your analysis of the market data...",
   "trade_decisions": [
@@ -479,7 +483,7 @@ Analyze this data and provide a JSON trading decision in the following format:
 }
 
 If no clear opportunity exists, use action "HOLD" for all positions.
-Respond ONLY with the JSON object, no additional text.`
+Your response must start with { and end with } - no other text allowed.`
 
     // Build auth fields for qwen call
     const authFields = await buildAuthFields()
@@ -515,7 +519,7 @@ Respond ONLY with the JSON object, no additional text.`
         body: JSON.stringify({
           messages: qwenMessages,
           model: REASONING_MODEL,
-          max_tokens: 2048,
+          max_tokens: 8192, // Increased to allow for <think> tags + JSON output
           temperature: 0.3, // Lower temperature for more deterministic decisions
           // NO tools - we want qwen to just reason and output text
           ...authFields,
