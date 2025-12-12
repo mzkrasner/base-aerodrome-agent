@@ -1,0 +1,1577 @@
+################################################################################
+EigenAI GPT System Prompt Variations Test
+2025-12-11T20:29:04.565Z
+Model: gpt-oss-120b-f16
+API URL: https://determinal-api.eigenarcade.com
+
+[2025-12-11T20:29:04.565Z] 
+================================================================================
+[2025-12-11T20:29:04.565Z] TEST 1: EXPLICIT_TOOL_LIMIT (gpt-oss-120b-f16)
+[2025-12-11T20:29:04.565Z] Tools provided: true
+[2025-12-11T20:29:04.565Z] ================================================================================
+[2025-12-11T20:29:04.565Z] System prompt:
+You are an autonomous trading agent on Aerodrome DEX (Base chain).
+
+CRITICAL RULE: You may call AT MOST 3 tools total. After 3 tool calls, you MUST stop and provide your final JSON response. Do not call any more tools after reaching this limit.
+
+## Available Tools
+- getTokenPrice: Get current price from DexScreener
+- getIndicators: Get technical indicators (EMA, RSI, MACD)
+- getWalletBalance: Get your current balances
+
+## Required Output Format
+After gathering data (max 3 tool calls), respond with JSON:
+{
+  "reasoning": "analysis based on the data you gathered...",
+  "trade_decisions": [{"token": "SYMBOL", "action": "buy|sell|hold", "amount_usd": 0, "rationale": "reason"}]
+}
+
+Remember: MAXIMUM 3 tool calls, then you MUST output your JSON decision.
+
+[2025-12-11T20:29:04.565Z] User prompt token: BTC
+[2025-12-11T20:29:04.566Z] 
+--- Iteration 1 ---
+[2025-12-11T20:29:04.566Z] Request body keys: model, messages, max_tokens, apiKey, tools, tool_choice
+[2025-12-11T20:29:05.854Z] Response time: 1288ms
+[2025-12-11T20:29:05.855Z] Finish reason: tool_calls
+[2025-12-11T20:29:05.855Z] Tokens: prompt=502, completion=21
+[2025-12-11T20:29:05.855Z] Tool calls: getTokenPrice (total: 1)
+[2025-12-11T20:29:05.855Z] Tool call details:
+[
+  {
+    "function": {
+      "arguments": "{\"symbol\":\"BTC\"}",
+      "name": "getTokenPrice"
+    },
+    "id": "tc_645b2ff0e5b50",
+    "type": "function"
+  }
+]
+[2025-12-11T20:29:05.855Z] Added mock result for getTokenPrice
+[2025-12-11T20:29:05.856Z] 
+--- Iteration 2 ---
+[2025-12-11T20:29:05.856Z] Request body keys: model, messages, max_tokens, apiKey, tools, tool_choice
+[2025-12-11T20:29:08.200Z] Response time: 2344ms
+[2025-12-11T20:29:08.200Z] Finish reason: tool_calls
+[2025-12-11T20:29:08.201Z] Tokens: prompt=573, completion=30
+[2025-12-11T20:29:08.201Z] Tool calls: getIndicators (total: 2)
+[2025-12-11T20:29:08.201Z] Tool call details:
+[
+  {
+    "function": {
+      "arguments": "{\"symbol\":\"BTC\",\"timeframe\":\"4h\"}",
+      "name": "getIndicators"
+    },
+    "id": "tc_645b2ff31a8f4",
+    "type": "function"
+  }
+]
+[2025-12-11T20:29:08.201Z] Added mock result for getIndicators
+[2025-12-11T20:29:08.201Z] 
+--- Iteration 3 ---
+[2025-12-11T20:29:08.201Z] Request body keys: model, messages, max_tokens, apiKey, tools, tool_choice
+[2025-12-11T20:29:09.183Z] Response time: 982ms
+[2025-12-11T20:29:09.183Z] Finish reason: tool_calls
+[2025-12-11T20:29:09.184Z] Tokens: prompt=656, completion=10
+[2025-12-11T20:29:09.184Z] Tool calls: getWalletBalance (total: 3)
+[2025-12-11T20:29:09.184Z] Tool call details:
+[
+  {
+    "function": {
+      "arguments": "{}",
+      "name": "getWalletBalance"
+    },
+    "id": "tc_645b2ff400a2c",
+    "type": "function"
+  }
+]
+[2025-12-11T20:29:09.184Z] Added mock result for getWalletBalance
+[2025-12-11T20:29:09.184Z] 
+--- Iteration 4 ---
+[2025-12-11T20:29:09.184Z] Request body keys: model, messages, max_tokens, apiKey, tools, tool_choice
+[2025-12-11T20:29:10.515Z] Response time: 1331ms
+[2025-12-11T20:29:10.515Z] Finish reason: tool_calls
+[2025-12-11T20:29:10.515Z] Tokens: prompt=726, completion=19
+[2025-12-11T20:29:10.515Z] Tool calls: getIndicators (total: 4)
+[2025-12-11T20:29:10.515Z] Tool call details:
+[
+  {
+    "function": {
+      "arguments": "{\"symbol\":\"BTC\",\"timeframe\":\"4h\"}",
+      "name": "getIndicators"
+    },
+    "id": "tc_645b2ff537fc4",
+    "type": "function"
+  }
+]
+[2025-12-11T20:29:10.516Z] Added mock result for getIndicators
+[2025-12-11T20:29:10.516Z] 
+--- Iteration 5 ---
+[2025-12-11T20:29:10.516Z] Request body keys: model, messages, max_tokens, apiKey, tools, tool_choice
+[2025-12-11T20:29:11.642Z] Response time: 1126ms
+[2025-12-11T20:29:11.643Z] Finish reason: tool_calls
+[2025-12-11T20:29:11.643Z] Tokens: prompt=809, completion=26
+[2025-12-11T20:29:11.643Z] Tool calls: getIndicators (total: 5)
+[2025-12-11T20:29:11.643Z] Tool call details:
+[
+  {
+    "function": {
+      "arguments": "{\"symbol\":\"BTC\",\"timeframe\":\"4h\"}",
+      "name": "getIndicators"
+    },
+    "id": "tc_645b2ff659b1f",
+    "type": "function"
+  }
+]
+[2025-12-11T20:29:11.643Z] Added mock result for getIndicators
+[2025-12-11T20:29:11.643Z] 
+--- Iteration 6 ---
+[2025-12-11T20:29:11.643Z] Request body keys: model, messages, max_tokens, apiKey, tools, tool_choice
+[2025-12-11T20:29:12.766Z] Response time: 1123ms
+[2025-12-11T20:29:12.767Z] Finish reason: tool_calls
+[2025-12-11T20:29:12.767Z] Tokens: prompt=892, completion=19
+[2025-12-11T20:29:12.767Z] Tool calls: getIndicators (total: 6)
+[2025-12-11T20:29:12.767Z] Tool call details:
+[
+  {
+    "function": {
+      "arguments": "{\"symbol\":\"BTC\",\"timeframe\":\"4h\"}",
+      "name": "getIndicators"
+    },
+    "id": "tc_645b2ff76f2fd",
+    "type": "function"
+  }
+]
+[2025-12-11T20:29:12.768Z] Added mock result for getIndicators
+[2025-12-11T20:29:12.768Z] 
+--- Iteration 7 ---
+[2025-12-11T20:29:12.768Z] Request body keys: model, messages, max_tokens, apiKey, tools, tool_choice
+[2025-12-11T20:29:13.996Z] Response time: 1228ms
+[2025-12-11T20:29:13.996Z] Finish reason: tool_calls
+[2025-12-11T20:29:13.996Z] Tokens: prompt=975, completion=24
+[2025-12-11T20:29:13.996Z] Tool calls: getIndicators (total: 7)
+[2025-12-11T20:29:13.996Z] Tool call details:
+[
+  {
+    "function": {
+      "arguments": "{\"symbol\":\"BTC\",\"timeframe\":\"4h\"}",
+      "name": "getIndicators"
+    },
+    "id": "tc_645b2ff8a84af",
+    "type": "function"
+  }
+]
+[2025-12-11T20:29:13.997Z] Added mock result for getIndicators
+[2025-12-11T20:29:13.997Z] 
+--- Iteration 8 ---
+[2025-12-11T20:29:13.997Z] Request body keys: model, messages, max_tokens, apiKey, tools, tool_choice
+[2025-12-11T20:29:15.430Z] Response time: 1433ms
+[2025-12-11T20:29:15.431Z] Finish reason: tool_calls
+[2025-12-11T20:29:15.431Z] Tokens: prompt=1058, completion=23
+[2025-12-11T20:29:15.431Z] Tool calls: getIndicators (total: 8)
+[2025-12-11T20:29:15.432Z] Tool call details:
+[
+  {
+    "function": {
+      "arguments": "{\"symbol\":\"BTC\",\"timeframe\":\"4h\"}",
+      "name": "getIndicators"
+    },
+    "id": "tc_645b2ff9eb9b9",
+    "type": "function"
+  }
+]
+[2025-12-11T20:29:15.432Z] Added mock result for getIndicators
+[2025-12-11T20:29:15.432Z] 
+--- Iteration 9 ---
+[2025-12-11T20:29:15.432Z] Request body keys: model, messages, max_tokens, apiKey, tools, tool_choice
+[2025-12-11T20:29:16.658Z] Response time: 1226ms
+[2025-12-11T20:29:16.658Z] Finish reason: tool_calls
+[2025-12-11T20:29:16.659Z] Tokens: prompt=1141, completion=19
+[2025-12-11T20:29:16.659Z] Tool calls: getIndicators (total: 9)
+[2025-12-11T20:29:16.659Z] Tool call details:
+[
+  {
+    "function": {
+      "arguments": "{\"symbol\":\"BTC\",\"timeframe\":\"4h\"}",
+      "name": "getIndicators"
+    },
+    "id": "tc_645b2ffb146a6",
+    "type": "function"
+  }
+]
+[2025-12-11T20:29:16.659Z] Added mock result for getIndicators
+[2025-12-11T20:29:16.659Z] 
+--- Iteration 10 ---
+[2025-12-11T20:29:16.659Z] Request body keys: model, messages, max_tokens, apiKey, tools, tool_choice
+[2025-12-11T20:29:17.800Z] Response time: 1141ms
+[2025-12-11T20:29:17.801Z] Finish reason: tool_calls
+[2025-12-11T20:29:17.801Z] Tokens: prompt=1224, completion=22
+[2025-12-11T20:29:17.801Z] Tool calls: getIndicators (total: 10)
+[2025-12-11T20:29:17.801Z] Tool call details:
+[
+  {
+    "function": {
+      "arguments": "{\"symbol\":\"BTC\",\"timeframe\":\"4h\"}",
+      "name": "getIndicators"
+    },
+    "id": "tc_645b2ffc4b95e",
+    "type": "function"
+  }
+]
+[2025-12-11T20:29:17.801Z] Added mock result for getIndicators
+[2025-12-11T20:29:17.802Z] 
+--- Iteration 11 ---
+[2025-12-11T20:29:17.802Z] Request body keys: model, messages, max_tokens, apiKey, tools, tool_choice
+[2025-12-11T20:29:18.994Z] Response time: 1192ms
+[2025-12-11T20:29:18.995Z] Finish reason: tool_calls
+[2025-12-11T20:29:18.995Z] Tokens: prompt=1307, completion=24
+[2025-12-11T20:29:18.995Z] Tool calls: getIndicators (total: 11)
+[2025-12-11T20:29:18.995Z] Tool call details:
+[
+  {
+    "function": {
+      "arguments": "{\"symbol\":\"BTC\",\"timeframe\":\"4h\"}",
+      "name": "getIndicators"
+    },
+    "id": "tc_645b2ffd66580",
+    "type": "function"
+  }
+]
+[2025-12-11T20:29:18.996Z] Added mock result for getIndicators
+[2025-12-11T20:29:18.996Z] 
+--- Iteration 12 ---
+[2025-12-11T20:29:18.996Z] Request body keys: model, messages, max_tokens, apiKey, tools, tool_choice
+[2025-12-11T20:29:20.447Z] Response time: 1451ms
+[2025-12-11T20:29:20.447Z] Finish reason: tool_calls
+[2025-12-11T20:29:20.447Z] Tokens: prompt=1390, completion=22
+[2025-12-11T20:29:20.448Z] Tool calls: getIndicators (total: 12)
+[2025-12-11T20:29:20.448Z] Tool call details:
+[
+  {
+    "function": {
+      "arguments": "{\"symbol\":\"BTC\",\"timeframe\":\"4h\"}",
+      "name": "getIndicators"
+    },
+    "id": "tc_645b2ffec5c46",
+    "type": "function"
+  }
+]
+[2025-12-11T20:29:20.448Z] Added mock result for getIndicators
+[2025-12-11T20:29:20.448Z] 
+--- Iteration 13 ---
+[2025-12-11T20:29:20.448Z] Request body keys: model, messages, max_tokens, apiKey, tools, tool_choice
+[2025-12-11T20:29:21.706Z] Response time: 1258ms
+[2025-12-11T20:29:21.706Z] Finish reason: tool_calls
+[2025-12-11T20:29:21.707Z] Tokens: prompt=1473, completion=21
+[2025-12-11T20:29:21.707Z] Tool calls: getIndicators (total: 13)
+[2025-12-11T20:29:21.707Z] Tool call details:
+[
+  {
+    "function": {
+      "arguments": "{\"symbol\":\"BTC\",\"timeframe\":\"4h\"}",
+      "name": "getIndicators"
+    },
+    "id": "tc_645b2ffffbe2c",
+    "type": "function"
+  }
+]
+[2025-12-11T20:29:21.707Z] Added mock result for getIndicators
+[2025-12-11T20:29:21.707Z] 
+--- Iteration 14 ---
+[2025-12-11T20:29:21.707Z] Request body keys: model, messages, max_tokens, apiKey, tools, tool_choice
+[2025-12-11T20:29:23.207Z] Response time: 1500ms
+[2025-12-11T20:29:23.207Z] Finish reason: tool_calls
+[2025-12-11T20:29:23.207Z] Tokens: prompt=1556, completion=24
+[2025-12-11T20:29:23.207Z] Tool calls: getIndicators (total: 14)
+[2025-12-11T20:29:23.207Z] Tool call details:
+[
+  {
+    "function": {
+      "arguments": "{\"symbol\":\"BTC\",\"timeframe\":\"4h\"}",
+      "name": "getIndicators"
+    },
+    "id": "tc_645b300162e18",
+    "type": "function"
+  }
+]
+[2025-12-11T20:29:23.207Z] Added mock result for getIndicators
+[2025-12-11T20:29:23.207Z] 
+--- Iteration 15 ---
+[2025-12-11T20:29:23.207Z] Request body keys: model, messages, max_tokens, apiKey, tools, tool_choice
+[2025-12-11T20:29:24.916Z] Response time: 1709ms
+[2025-12-11T20:29:24.917Z] Finish reason: tool_calls
+[2025-12-11T20:29:24.917Z] Tokens: prompt=1639, completion=30
+[2025-12-11T20:29:24.917Z] Tool calls: getIndicators (total: 15)
+[2025-12-11T20:29:24.917Z] Tool call details:
+[
+  {
+    "function": {
+      "arguments": "{\"symbol\":\"BTC\",\"timeframe\":\"4h\"}",
+      "name": "getIndicators"
+    },
+    "id": "tc_645b30030bd77",
+    "type": "function"
+  }
+]
+[2025-12-11T20:29:24.918Z] Added mock result for getIndicators
+[2025-12-11T20:29:24.918Z] ❌ FAILED: Hit max iterations (15) - model never returned text
+[2025-12-11T20:29:24.918Z] 
+================================================================================
+[2025-12-11T20:29:24.918Z] TEST 2: CONFIDENCE_REASSURANCE (gpt-oss-120b-f16)
+[2025-12-11T20:29:24.918Z] Tools provided: true
+[2025-12-11T20:29:24.918Z] ================================================================================
+[2025-12-11T20:29:24.918Z] System prompt:
+You are an autonomous trading agent on Aerodrome DEX (Base chain).
+
+IMPORTANT: You do NOT need perfect or complete information to make a decision. Trading always involves uncertainty. Make the best decision you can with whatever data you have gathered. It is better to make a reasonable decision with incomplete data than to keep gathering more data forever.
+
+## Available Tools
+- getTokenPrice: Get current price
+- getIndicators: Get technical indicators
+- getWalletBalance: Get balances
+
+## Your Task
+1. Gather some basic data (1-2 tool calls is usually sufficient)
+2. Accept that you won't have perfect information
+3. Make your best decision and OUTPUT IT as JSON
+
+Do not overthink. Do not keep calling tools hoping for more certainty. Output your decision:
+{
+  "reasoning": "your analysis...",
+  "trade_decisions": [{"token": "SYMBOL", "action": "buy|sell|hold", "amount_usd": 0, "rationale": "reason"}]
+}
+
+[2025-12-11T20:29:24.919Z] User prompt token: ETH
+[2025-12-11T20:29:24.919Z] 
+--- Iteration 1 ---
+[2025-12-11T20:29:24.919Z] Request body keys: model, messages, max_tokens, apiKey, tools, tool_choice
+[2025-12-11T20:29:25.758Z] Response time: 839ms
+[2025-12-11T20:29:25.758Z] Finish reason: tool_calls
+[2025-12-11T20:29:25.759Z] Tokens: prompt=519, completion=23
+[2025-12-11T20:29:25.759Z] Tool calls: getTokenPrice (total: 1)
+[2025-12-11T20:29:25.759Z] Tool call details:
+[
+  {
+    "function": {
+      "arguments": "{\"symbol\":\"ETH\"}",
+      "name": "getTokenPrice"
+    },
+    "id": "tc_645b3003d8fcb",
+    "type": "function"
+  }
+]
+[2025-12-11T20:29:25.759Z] Added mock result for getTokenPrice
+[2025-12-11T20:29:25.759Z] 
+--- Iteration 2 ---
+[2025-12-11T20:29:25.759Z] Request body keys: model, messages, max_tokens, apiKey, tools, tool_choice
+[2025-12-11T20:29:26.693Z] Response time: 934ms
+[2025-12-11T20:29:26.693Z] Finish reason: tool_calls
+[2025-12-11T20:29:26.694Z] Tokens: prompt=590, completion=19
+[2025-12-11T20:29:26.694Z] Tool calls: getIndicators (total: 2)
+[2025-12-11T20:29:26.694Z] Tool call details:
+[
+  {
+    "function": {
+      "arguments": "{\"symbol\":\"ETH\",\"timeframe\":\"4h\"}",
+      "name": "getIndicators"
+    },
+    "id": "tc_645b3004ae5cb",
+    "type": "function"
+  }
+]
+[2025-12-11T20:29:26.694Z] Added mock result for getIndicators
+[2025-12-11T20:29:26.694Z] 
+--- Iteration 3 ---
+[2025-12-11T20:29:26.694Z] Request body keys: model, messages, max_tokens, apiKey, tools, tool_choice
+[2025-12-11T20:29:27.610Z] Response time: 916ms
+[2025-12-11T20:29:27.610Z] Finish reason: tool_calls
+[2025-12-11T20:29:27.611Z] Tokens: prompt=673, completion=12
+[2025-12-11T20:29:27.611Z] Tool calls: getWalletBalance (total: 3)
+[2025-12-11T20:29:27.611Z] Tool call details:
+[
+  {
+    "function": {
+      "arguments": "{}",
+      "name": "getWalletBalance"
+    },
+    "id": "tc_645b30059de34",
+    "type": "function"
+  }
+]
+[2025-12-11T20:29:27.611Z] Added mock result for getWalletBalance
+[2025-12-11T20:29:27.611Z] 
+--- Iteration 4 ---
+[2025-12-11T20:29:27.611Z] Request body keys: model, messages, max_tokens, apiKey, tools, tool_choice
+[2025-12-11T20:29:28.670Z] Response time: 1059ms
+[2025-12-11T20:29:28.671Z] Finish reason: tool_calls
+[2025-12-11T20:29:28.671Z] Tokens: prompt=743, completion=17
+[2025-12-11T20:29:28.671Z] Tool calls: getTokenPrice (total: 4)
+[2025-12-11T20:29:28.672Z] Tool call details:
+[
+  {
+    "function": {
+      "arguments": "{\"symbol\":\"USDC\"}",
+      "name": "getTokenPrice"
+    },
+    "id": "tc_645b3006a963f",
+    "type": "function"
+  }
+]
+[2025-12-11T20:29:28.672Z] Added mock result for getTokenPrice
+[2025-12-11T20:29:28.672Z] 
+--- Iteration 5 ---
+[2025-12-11T20:29:28.672Z] Request body keys: model, messages, max_tokens, apiKey, tools, tool_choice
+[2025-12-11T20:29:29.663Z] Response time: 991ms
+[2025-12-11T20:29:29.663Z] Finish reason: tool_calls
+[2025-12-11T20:29:29.664Z] Tokens: prompt=816, completion=22
+[2025-12-11T20:29:29.664Z] Tool calls: getIndicators (total: 5)
+[2025-12-11T20:29:29.664Z] Tool call details:
+[
+  {
+    "function": {
+      "arguments": "{\"symbol\":\"USDC\",\"timeframe\":\"4h\"}",
+      "name": "getIndicators"
+    },
+    "id": "tc_645b300796159",
+    "type": "function"
+  }
+]
+[2025-12-11T20:29:29.664Z] Added mock result for getIndicators
+[2025-12-11T20:29:29.664Z] 
+--- Iteration 6 ---
+[2025-12-11T20:29:29.665Z] Request body keys: model, messages, max_tokens, apiKey, tools, tool_choice
+[2025-12-11T20:29:30.903Z] Response time: 1238ms
+[2025-12-11T20:29:30.903Z] Finish reason: tool_calls
+[2025-12-11T20:29:30.904Z] Tokens: prompt=903, completion=15
+[2025-12-11T20:29:30.904Z] Tool calls: getTokenPrice (total: 6)
+[2025-12-11T20:29:30.904Z] Tool call details:
+[
+  {
+    "function": {
+      "arguments": "{\"symbol\":\"AERO\"}",
+      "name": "getTokenPrice"
+    },
+    "id": "tc_645b3008c1531",
+    "type": "function"
+  }
+]
+[2025-12-11T20:29:30.904Z] Added mock result for getTokenPrice
+[2025-12-11T20:29:30.904Z] 
+--- Iteration 7 ---
+[2025-12-11T20:29:30.904Z] Request body keys: model, messages, max_tokens, apiKey, tools, tool_choice
+[2025-12-11T20:29:32.032Z] Response time: 1128ms
+[2025-12-11T20:29:32.033Z] Finish reason: tool_calls
+[2025-12-11T20:29:32.033Z] Tokens: prompt=976, completion=18
+[2025-12-11T20:29:32.033Z] Tool calls: getIndicators (total: 7)
+[2025-12-11T20:29:32.033Z] Tool call details:
+[
+  {
+    "function": {
+      "arguments": "{\"symbol\":\"ATECH?\"}",
+      "name": "getIndicators"
+    },
+    "id": "tc_645b3009d54c7",
+    "type": "function"
+  }
+]
+[2025-12-11T20:29:32.033Z] Added mock result for getIndicators
+[2025-12-11T20:29:32.033Z] 
+--- Iteration 8 ---
+[2025-12-11T20:29:32.033Z] Request body keys: model, messages, max_tokens, apiKey, tools, tool_choice
+[2025-12-11T20:29:33.291Z] Response time: 1258ms
+[2025-12-11T20:29:33.291Z] Finish reason: tool_calls
+[2025-12-11T20:29:33.292Z] Tokens: prompt=1058, completion=22
+[2025-12-11T20:29:33.292Z] Tool calls: getIndicators (total: 8)
+[2025-12-11T20:29:33.292Z] Tool call details:
+[
+  {
+    "function": {
+      "arguments": "{\"symbol\":\"ETH\",\"timeframe\":\"4h\"}",
+      "name": "getIndicators"
+    },
+    "id": "tc_645b300b0815e",
+    "type": "function"
+  }
+]
+[2025-12-11T20:29:33.292Z] Added mock result for getIndicators
+[2025-12-11T20:29:33.292Z] 
+--- Iteration 9 ---
+[2025-12-11T20:29:33.292Z] Request body keys: model, messages, max_tokens, apiKey, tools, tool_choice
+[2025-12-11T20:29:34.621Z] Response time: 1329ms
+[2025-12-11T20:29:34.622Z] Finish reason: tool_calls
+[2025-12-11T20:29:34.622Z] Tokens: prompt=1141, completion=21
+[2025-12-11T20:29:34.622Z] Tool calls: getIndicators (total: 9)
+[2025-12-11T20:29:34.623Z] Tool call details:
+[
+  {
+    "function": {
+      "arguments": "{\"symbol\":\"ETH\",\"timeframe\":\"4h\"}",
+      "name": "getIndicators"
+    },
+    "id": "tc_645b300c55d2d",
+    "type": "function"
+  }
+]
+[2025-12-11T20:29:34.623Z] Added mock result for getIndicators
+[2025-12-11T20:29:34.623Z] 
+--- Iteration 10 ---
+[2025-12-11T20:29:34.623Z] Request body keys: model, messages, max_tokens, apiKey, tools, tool_choice
+[2025-12-11T20:29:35.873Z] Response time: 1250ms
+[2025-12-11T20:29:35.874Z] Finish reason: tool_calls
+[2025-12-11T20:29:35.874Z] Tokens: prompt=1224, completion=14
+[2025-12-11T20:29:35.874Z] Tool calls: getTokenPrice (total: 10)
+[2025-12-11T20:29:35.874Z] Tool call details:
+[
+  {
+    "function": {
+      "arguments": "{\"symbol\":\"ETH\"}",
+      "name": "getTokenPrice"
+    },
+    "id": "tc_645b300d7eabe",
+    "type": "function"
+  }
+]
+[2025-12-11T20:29:35.874Z] Added mock result for getTokenPrice
+[2025-12-11T20:29:35.874Z] 
+--- Iteration 11 ---
+[2025-12-11T20:29:35.874Z] Request body keys: model, messages, max_tokens, apiKey, tools, tool_choice
+[2025-12-11T20:29:37.216Z] Response time: 1342ms
+[2025-12-11T20:29:37.216Z] Finish reason: tool_calls
+[2025-12-11T20:29:37.216Z] Tokens: prompt=1295, completion=24
+[2025-12-11T20:29:37.216Z] Tool calls: getIndicators (total: 11)
+[2025-12-11T20:29:37.216Z] Tool call details:
+[
+  {
+    "function": {
+      "arguments": "{\"symbol\":\"ETH\",\"timeframe\":\"4h\"}",
+      "name": "getIndicators"
+    },
+    "id": "tc_645b300ec97a4",
+    "type": "function"
+  }
+]
+[2025-12-11T20:29:37.217Z] Added mock result for getIndicators
+[2025-12-11T20:29:37.217Z] 
+--- Iteration 12 ---
+[2025-12-11T20:29:37.217Z] Request body keys: model, messages, max_tokens, apiKey, tools, tool_choice
+[2025-12-11T20:29:38.470Z] Response time: 1253ms
+[2025-12-11T20:29:38.471Z] Finish reason: tool_calls
+[2025-12-11T20:29:38.471Z] Tokens: prompt=1378, completion=19
+[2025-12-11T20:29:38.471Z] Tool calls: getIndicators (total: 12)
+[2025-12-11T20:29:38.472Z] Tool call details:
+[
+  {
+    "function": {
+      "arguments": "{\"symbol\":\"ETH\",\"timeframe\":\"4h\"}",
+      "name": "getIndicators"
+    },
+    "id": "tc_645b300ff63b1",
+    "type": "function"
+  }
+]
+[2025-12-11T20:29:38.472Z] Added mock result for getIndicators
+[2025-12-11T20:29:38.472Z] 
+--- Iteration 13 ---
+[2025-12-11T20:29:38.472Z] Request body keys: model, messages, max_tokens, apiKey, tools, tool_choice
+[2025-12-11T20:29:39.801Z] Response time: 1329ms
+[2025-12-11T20:29:39.801Z] Finish reason: tool_calls
+[2025-12-11T20:29:39.801Z] Tokens: prompt=1461, completion=24
+[2025-12-11T20:29:39.801Z] Tool calls: getIndicators (total: 13)
+[2025-12-11T20:29:39.802Z] Tool call details:
+[
+  {
+    "function": {
+      "arguments": "{\"symbol\":\"ETH\",\"timeframe\":\"4h\"}",
+      "name": "getIndicators"
+    },
+    "id": "tc_645b301130e3c",
+    "type": "function"
+  }
+]
+[2025-12-11T20:29:39.802Z] Added mock result for getIndicators
+[2025-12-11T20:29:39.802Z] 
+--- Iteration 14 ---
+[2025-12-11T20:29:39.802Z] Request body keys: model, messages, max_tokens, apiKey, tools, tool_choice
+[2025-12-11T20:29:41.275Z] Response time: 1473ms
+[2025-12-11T20:29:41.275Z] Finish reason: tool_calls
+[2025-12-11T20:29:41.275Z] Tokens: prompt=1544, completion=21
+[2025-12-11T20:29:41.275Z] Tool calls: getIndicators (total: 14)
+[2025-12-11T20:29:41.275Z] Tool call details:
+[
+  {
+    "function": {
+      "arguments": "{\"symbol\":\"ETH\",\"timeframe\":\"4h\"}",
+      "name": "getIndicators"
+    },
+    "id": "tc_645b3012ae0c6",
+    "type": "function"
+  }
+]
+[2025-12-11T20:29:41.275Z] Added mock result for getIndicators
+[2025-12-11T20:29:41.276Z] 
+--- Iteration 15 ---
+[2025-12-11T20:29:41.276Z] Request body keys: model, messages, max_tokens, apiKey, tools, tool_choice
+[2025-12-11T20:29:42.668Z] Response time: 1392ms
+[2025-12-11T20:29:42.668Z] Finish reason: tool_calls
+[2025-12-11T20:29:42.668Z] Tokens: prompt=1627, completion=21
+[2025-12-11T20:29:42.668Z] Tool calls: getIndicators (total: 15)
+[2025-12-11T20:29:42.669Z] Tool call details:
+[
+  {
+    "function": {
+      "arguments": "{\"symbol\":\"ETH\",\"timeframe\":\"4h\"}",
+      "name": "getIndicators"
+    },
+    "id": "tc_645b3013f2b49",
+    "type": "function"
+  }
+]
+[2025-12-11T20:29:42.669Z] Added mock result for getIndicators
+[2025-12-11T20:29:42.669Z] ❌ FAILED: Hit max iterations (15) - model never returned text
+[2025-12-11T20:29:42.669Z] 
+================================================================================
+[2025-12-11T20:29:42.669Z] TEST 3: TWO_PHASE_STRUCTURE (gpt-oss-120b-f16)
+[2025-12-11T20:29:42.669Z] Tools provided: true
+[2025-12-11T20:29:42.669Z] ================================================================================
+[2025-12-11T20:29:42.669Z] System prompt:
+You are an autonomous trading agent on Aerodrome DEX (Base chain).
+
+Your workflow has exactly TWO PHASES:
+
+## PHASE 1: DATA GATHERING (Brief)
+Call 1-3 tools to get basic market data. This phase should be quick.
+
+## PHASE 2: DECISION (Required)
+After Phase 1, you MUST enter Phase 2 and output your trading decision as JSON. No more tool calls in Phase 2.
+
+Available tools: getTokenPrice, getIndicators, getWalletBalance
+
+PHASE 2 OUTPUT FORMAT (required after any tool calls):
+{
+  "reasoning": "your analysis of the data...",
+  "trade_decisions": [{"token": "SYMBOL", "action": "buy|sell|hold", "amount_usd": 0, "rationale": "reason"}]
+}
+
+You are currently starting Phase 1. After a few tool calls, transition to Phase 2 and output your JSON.
+
+[2025-12-11T20:29:42.670Z] User prompt token: AERO
+[2025-12-11T20:29:42.670Z] 
+--- Iteration 1 ---
+[2025-12-11T20:29:42.670Z] Request body keys: model, messages, max_tokens, apiKey, tools, tool_choice
+[2025-12-11T20:29:43.589Z] Response time: 919ms
+[2025-12-11T20:29:43.589Z] Finish reason: tool_calls
+[2025-12-11T20:29:43.590Z] Tokens: prompt=514, completion=22
+[2025-12-11T20:29:43.590Z] Tool calls: getTokenPrice (total: 1)
+[2025-12-11T20:29:43.590Z] Tool call details:
+[
+  {
+    "function": {
+      "arguments": "{\"symbol\":\"AERO\"}",
+      "name": "getTokenPrice"
+    },
+    "id": "tc_645b3014d9b92",
+    "type": "function"
+  }
+]
+[2025-12-11T20:29:43.590Z] Added mock result for getTokenPrice
+[2025-12-11T20:29:43.590Z] 
+--- Iteration 2 ---
+[2025-12-11T20:29:43.590Z] Request body keys: model, messages, max_tokens, apiKey, tools, tool_choice
+[2025-12-11T20:29:44.396Z] Response time: 806ms
+[2025-12-11T20:29:44.396Z] Finish reason: tool_calls
+[2025-12-11T20:29:44.397Z] Tokens: prompt=587, completion=21
+[2025-12-11T20:29:44.397Z] Tool calls: getIndicators (total: 2)
+[2025-12-11T20:29:44.397Z] Tool call details:
+[
+  {
+    "function": {
+      "arguments": "{\"symbol\":\"AERO\",\"timeframe\":\"4h\"}",
+      "name": "getIndicators"
+    },
+    "id": "tc_645b3015a9483",
+    "type": "function"
+  }
+]
+[2025-12-11T20:29:44.397Z] Added mock result for getIndicators
+[2025-12-11T20:29:44.397Z] 
+--- Iteration 3 ---
+[2025-12-11T20:29:44.398Z] Request body keys: model, messages, max_tokens, apiKey, tools, tool_choice
+[2025-12-11T20:29:45.220Z] Response time: 822ms
+[2025-12-11T20:29:45.220Z] Finish reason: tool_calls
+[2025-12-11T20:29:45.220Z] Tokens: prompt=674, completion=12
+[2025-12-11T20:29:45.220Z] Tool calls: getWalletBalance (total: 3)
+[2025-12-11T20:29:45.220Z] Tool call details:
+[
+  {
+    "function": {
+      "arguments": "{}",
+      "name": "getWalletBalance"
+    },
+    "id": "tc_645b301671e1a",
+    "type": "function"
+  }
+]
+[2025-12-11T20:29:45.220Z] Added mock result for getWalletBalance
+[2025-12-11T20:29:45.220Z] 
+--- Iteration 4 ---
+[2025-12-11T20:29:45.221Z] Request body keys: model, messages, max_tokens, apiKey, tools, tool_choice
+[2025-12-11T20:29:46.449Z] Response time: 1228ms
+[2025-12-11T20:29:46.449Z] Finish reason: tool_calls
+[2025-12-11T20:29:46.449Z] Tokens: prompt=744, completion=22
+[2025-12-11T20:29:46.449Z] Tool calls: getIndicators (total: 4)
+[2025-12-11T20:29:46.449Z] Tool call details:
+[
+  {
+    "function": {
+      "arguments": "{\"symbol\":\"AERO\",\"timeframe\":\"4h\"}",
+      "name": "getIndicators"
+    },
+    "id": "tc_645b301783c26",
+    "type": "function"
+  }
+]
+[2025-12-11T20:29:46.449Z] Added mock result for getIndicators
+[2025-12-11T20:29:46.450Z] 
+--- Iteration 5 ---
+[2025-12-11T20:29:46.450Z] Request body keys: model, messages, max_tokens, apiKey, tools, tool_choice
+[2025-12-11T20:29:47.540Z] Response time: 1090ms
+[2025-12-11T20:29:47.541Z] Finish reason: tool_calls
+[2025-12-11T20:29:47.541Z] Tokens: prompt=831, completion=15
+[2025-12-11T20:29:47.541Z] Tool calls: getIndicators (total: 5)
+[2025-12-11T20:29:47.541Z] Tool call details:
+[
+  {
+    "function": {
+      "arguments": "{\"symbol\":\"A mistakenly...\"}",
+      "name": "getIndicators"
+    },
+    "id": "tc_645b30189ce5f",
+    "type": "function"
+  }
+]
+[2025-12-11T20:29:47.541Z] Added mock result for getIndicators
+[2025-12-11T20:29:47.541Z] 
+--- Iteration 6 ---
+[2025-12-11T20:29:47.541Z] Request body keys: model, messages, max_tokens, apiKey, tools, tool_choice
+[2025-12-11T20:29:48.813Z] Response time: 1272ms
+[2025-12-11T20:29:48.813Z] Finish reason: tool_calls
+[2025-12-11T20:29:48.813Z] Tokens: prompt=916, completion=31
+[2025-12-11T20:29:48.813Z] Tool calls: getIndicators (total: 6)
+[2025-12-11T20:29:48.813Z] Tool call details:
+[
+  {
+    "function": {
+      "arguments": "{\"symbol\":\"AERO\",\"timeframe\":\"4h\"}",
+      "name": "getIndicators"
+    },
+    "id": "tc_645b3019c5be2",
+    "type": "function"
+  }
+]
+[2025-12-11T20:29:48.814Z] Added mock result for getIndicators
+[2025-12-11T20:29:48.814Z] 
+--- Iteration 7 ---
+[2025-12-11T20:29:48.814Z] Request body keys: model, messages, max_tokens, apiKey, tools, tool_choice
+[2025-12-11T20:29:50.147Z] Response time: 1333ms
+[2025-12-11T20:29:50.147Z] Finish reason: tool_calls
+[2025-12-11T20:29:50.148Z] Tokens: prompt=1003, completion=31
+[2025-12-11T20:29:50.148Z] Tool calls: getIndicators (total: 7)
+[2025-12-11T20:29:50.148Z] Tool call details:
+[
+  {
+    "function": {
+      "arguments": "{\"symbol\":\"AERO\",\"timeframe\":\"4h\"}",
+      "name": "getIndicators"
+    },
+    "id": "tc_645b301b24108",
+    "type": "function"
+  }
+]
+[2025-12-11T20:29:50.148Z] Added mock result for getIndicators
+[2025-12-11T20:29:50.148Z] 
+--- Iteration 8 ---
+[2025-12-11T20:29:50.148Z] Request body keys: model, messages, max_tokens, apiKey, tools, tool_choice
+[2025-12-11T20:29:51.475Z] Response time: 1327ms
+[2025-12-11T20:29:51.475Z] Finish reason: tool_calls
+[2025-12-11T20:29:51.475Z] Tokens: prompt=1090, completion=22
+[2025-12-11T20:29:51.476Z] Tool calls: getIndicators (total: 8)
+[2025-12-11T20:29:51.476Z] Tool call details:
+[
+  {
+    "function": {
+      "arguments": "{\"symbol\":\"AERO\",\"timeframe\":\"4h\"}",
+      "name": "getIndicators"
+    },
+    "id": "tc_645b301c5a251",
+    "type": "function"
+  }
+]
+[2025-12-11T20:29:51.476Z] Added mock result for getIndicators
+[2025-12-11T20:29:51.476Z] 
+--- Iteration 9 ---
+[2025-12-11T20:29:51.476Z] Request body keys: model, messages, max_tokens, apiKey, tools, tool_choice
+[2025-12-11T20:29:52.907Z] Response time: 1431ms
+[2025-12-11T20:29:52.908Z] Finish reason: tool_calls
+[2025-12-11T20:29:52.908Z] Tokens: prompt=1177, completion=25
+[2025-12-11T20:29:52.908Z] Tool calls: getIndicators (total: 9)
+[2025-12-11T20:29:52.908Z] Tool call details:
+[
+  {
+    "function": {
+      "arguments": "{\"symbol\":\"AERO\",\"timeframe\":\"4h\"}",
+      "name": "getIndicators"
+    },
+    "id": "tc_645b301da6af3",
+    "type": "function"
+  }
+]
+[2025-12-11T20:29:52.908Z] Added mock result for getIndicators
+[2025-12-11T20:29:52.908Z] 
+--- Iteration 10 ---
+[2025-12-11T20:29:52.908Z] Request body keys: model, messages, max_tokens, apiKey, tools, tool_choice
+[2025-12-11T20:29:54.136Z] Response time: 1228ms
+[2025-12-11T20:29:54.136Z] Finish reason: tool_calls
+[2025-12-11T20:29:54.137Z] Tokens: prompt=1264, completion=25
+[2025-12-11T20:29:54.137Z] Tool calls: getIndicators (total: 10)
+[2025-12-11T20:29:54.137Z] Tool call details:
+[
+  {
+    "function": {
+      "arguments": "{\"symbol\":\"AERO\",\"timeframe\":\"4h\"}",
+      "name": "getIndicators"
+    },
+    "id": "tc_645b301ee1b8c",
+    "type": "function"
+  }
+]
+[2025-12-11T20:29:54.138Z] Added mock result for getIndicators
+[2025-12-11T20:29:54.138Z] 
+--- Iteration 11 ---
+[2025-12-11T20:29:54.138Z] Request body keys: model, messages, max_tokens, apiKey, tools, tool_choice
+[2025-12-11T20:29:55.550Z] Response time: 1412ms
+[2025-12-11T20:29:55.551Z] Finish reason: tool_calls
+[2025-12-11T20:29:55.551Z] Tokens: prompt=1351, completion=22
+[2025-12-11T20:29:55.551Z] Tool calls: getIndicators (total: 11)
+[2025-12-11T20:29:55.551Z] Tool call details:
+[
+  {
+    "function": {
+      "arguments": "{\"symbol\":\"AERO\",\"timeframe\":\"4h\"}",
+      "name": "getIndicators"
+    },
+    "id": "tc_645b302041fc3",
+    "type": "function"
+  }
+]
+[2025-12-11T20:29:55.551Z] Added mock result for getIndicators
+[2025-12-11T20:29:55.551Z] 
+--- Iteration 12 ---
+[2025-12-11T20:29:55.552Z] Request body keys: model, messages, max_tokens, apiKey, tools, tool_choice
+[2025-12-11T20:29:56.705Z] Response time: 1153ms
+[2025-12-11T20:29:56.705Z] Finish reason: tool_calls
+[2025-12-11T20:29:56.706Z] Tokens: prompt=1438, completion=20
+[2025-12-11T20:29:56.706Z] Tool calls: getIndicators (total: 12)
+[2025-12-11T20:29:56.706Z] Tool call details:
+[
+  {
+    "function": {
+      "arguments": "{\"symbol\":\"AERO\",\"timeframe\":\"4h\"}",
+      "name": "getIndicators"
+    },
+    "id": "tc_645b30215ce29",
+    "type": "function"
+  }
+]
+[2025-12-11T20:29:56.706Z] Added mock result for getIndicators
+[2025-12-11T20:29:56.706Z] 
+--- Iteration 13 ---
+[2025-12-11T20:29:56.706Z] Request body keys: model, messages, max_tokens, apiKey, tools, tool_choice
+[2025-12-11T20:29:58.132Z] Response time: 1426ms
+[2025-12-11T20:29:58.132Z] Finish reason: tool_calls
+[2025-12-11T20:29:58.133Z] Tokens: prompt=1525, completion=25
+[2025-12-11T20:29:58.133Z] Tool calls: getIndicators (total: 13)
+[2025-12-11T20:29:58.133Z] Tool call details:
+[
+  {
+    "function": {
+      "arguments": "{\"symbol\":\"AERO\",\"timeframe\":\"4h\"}",
+      "name": "getIndicators"
+    },
+    "id": "tc_645b3022c1f17",
+    "type": "function"
+  }
+]
+[2025-12-11T20:29:58.133Z] Added mock result for getIndicators
+[2025-12-11T20:29:58.133Z] 
+--- Iteration 14 ---
+[2025-12-11T20:29:58.133Z] Request body keys: model, messages, max_tokens, apiKey, tools, tool_choice
+[2025-12-11T20:29:59.520Z] Response time: 1387ms
+[2025-12-11T20:29:59.520Z] Finish reason: tool_calls
+[2025-12-11T20:29:59.520Z] Tokens: prompt=1612, completion=25
+[2025-12-11T20:29:59.520Z] Tool calls: getIndicators (total: 14)
+[2025-12-11T20:29:59.520Z] Tool call details:
+[
+  {
+    "function": {
+      "arguments": "{\"symbol\":\"AERO\",\"timeframe\":\"4h\"}",
+      "name": "getIndicators"
+    },
+    "id": "tc_645b30240b9de",
+    "type": "function"
+  }
+]
+[2025-12-11T20:29:59.520Z] Added mock result for getIndicators
+[2025-12-11T20:29:59.520Z] 
+--- Iteration 15 ---
+[2025-12-11T20:29:59.521Z] Request body keys: model, messages, max_tokens, apiKey, tools, tool_choice
+[2025-12-11T20:30:01.202Z] Response time: 1681ms
+[2025-12-11T20:30:01.202Z] Finish reason: tool_calls
+[2025-12-11T20:30:01.202Z] Tokens: prompt=1699, completion=25
+[2025-12-11T20:30:01.203Z] Tool calls: getIndicators (total: 15)
+[2025-12-11T20:30:01.203Z] Tool call details:
+[
+  {
+    "function": {
+      "arguments": "{\"symbol\":\"AERO\",\"timeframe\":\"4h\"}",
+      "name": "getIndicators"
+    },
+    "id": "tc_645b302597e22",
+    "type": "function"
+  }
+]
+[2025-12-11T20:30:01.203Z] Added mock result for getIndicators
+[2025-12-11T20:30:01.203Z] ❌ FAILED: Hit max iterations (15) - model never returned text
+[2025-12-11T20:30:01.203Z] 
+================================================================================
+[2025-12-11T20:30:01.203Z] TEST 4: TOOL_FREE_DECISION (gpt-oss-120b-f16)
+[2025-12-11T20:30:01.204Z] Tools provided: false
+[2025-12-11T20:30:01.204Z] ================================================================================
+[2025-12-11T20:30:01.204Z] System prompt:
+You are an autonomous trading agent on Aerodrome DEX (Base chain).
+
+INSTRUCTION: Do NOT call any tools. Make your trading decision based on general market knowledge and the information provided in the user's message.
+
+You are being tested on your ability to make reasonable decisions without external data. Output your decision directly as JSON:
+
+{
+  "reasoning": "your analysis and rationale...",
+  "trade_decisions": [{"token": "SYMBOL", "action": "buy|sell|hold", "amount_usd": 0, "rationale": "reason"}]
+}
+
+NO TOOL CALLS. Just output JSON directly.
+
+[2025-12-11T20:30:01.204Z] User prompt token: BRETT
+[2025-12-11T20:30:01.204Z] 
+--- Iteration 1 ---
+[2025-12-11T20:30:01.204Z] Request body keys: model, messages, max_tokens, apiKey
+[2025-12-11T20:30:02.309Z] Response time: 1105ms
+[2025-12-11T20:30:02.309Z] Finish reason: tool_calls
+[2025-12-11T20:30:02.309Z] Tokens: prompt=294, completion=20
+[2025-12-11T20:30:02.309Z] Tool calls: getWalletBalance (total: 1)
+[2025-12-11T20:30:02.309Z] Tool call details:
+[
+  {
+    "function": {
+      "arguments": "{}",
+      "name": "getWalletBalance"
+    },
+    "id": "tc_645b3026b7c4d",
+    "type": "function"
+  }
+]
+[2025-12-11T20:30:02.310Z] Added mock result for getWalletBalance
+[2025-12-11T20:30:02.310Z] 
+--- Iteration 2 ---
+[2025-12-11T20:30:02.310Z] Request body keys: model, messages, max_tokens, apiKey
+[2025-12-11T20:30:03.025Z] Response time: 715ms
+[2025-12-11T20:30:03.025Z] Finish reason: tool_calls
+[2025-12-11T20:30:03.025Z] Tokens: prompt=364, completion=12
+[2025-12-11T20:30:03.026Z] Tool calls: getWalletBalance (total: 2)
+[2025-12-11T20:30:03.026Z] Tool call details:
+[
+  {
+    "function": {
+      "arguments": "{}",
+      "name": "getWalletBalance"
+    },
+    "id": "tc_645b30276b3fa",
+    "type": "function"
+  }
+]
+[2025-12-11T20:30:03.026Z] Added mock result for getWalletBalance
+[2025-12-11T20:30:03.026Z] 
+--- Iteration 3 ---
+[2025-12-11T20:30:03.026Z] Request body keys: model, messages, max_tokens, apiKey
+[2025-12-11T20:30:04.172Z] Response time: 1146ms
+[2025-12-11T20:30:04.173Z] Finish reason: tool_calls
+[2025-12-11T20:30:04.173Z] Tokens: prompt=434, completion=23
+[2025-12-11T20:30:04.173Z] Tool calls: getTokenPrice (total: 3)
+[2025-12-11T20:30:04.174Z] Tool call details:
+[
+  {
+    "function": {
+      "arguments": "{\"symbol\":\"BREZ\"}",
+      "name": "getTokenPrice"
+    },
+    "id": "tc_645b30287476e",
+    "type": "function"
+  }
+]
+[2025-12-11T20:30:04.174Z] Added mock result for getTokenPrice
+[2025-12-11T20:30:04.174Z] 
+--- Iteration 4 ---
+[2025-12-11T20:30:04.174Z] Request body keys: model, messages, max_tokens, apiKey
+[2025-12-11T20:30:05.196Z] Response time: 1022ms
+[2025-12-11T20:30:05.196Z] Finish reason: tool_calls
+[2025-12-11T20:30:05.197Z] Tokens: prompt=507, completion=16
+[2025-12-11T20:30:05.197Z] Tool calls: getTokenPrice (total: 4)
+[2025-12-11T20:30:05.197Z] Tool call details:
+[
+  {
+    "function": {
+      "arguments": "{\"symbol\":\"BRETT\"}",
+      "name": "getTokenPrice"
+    },
+    "id": "tc_645b302960dc2",
+    "type": "function"
+  }
+]
+[2025-12-11T20:30:05.197Z] Added mock result for getTokenPrice
+[2025-12-11T20:30:05.198Z] 
+--- Iteration 5 ---
+[2025-12-11T20:30:05.198Z] Request body keys: model, messages, max_tokens, apiKey
+[2025-12-11T20:30:06.262Z] Response time: 1064ms
+[2025-12-11T20:30:06.263Z] Finish reason: tool_calls
+[2025-12-11T20:30:06.263Z] Tokens: prompt=581, completion=17
+[2025-12-11T20:30:06.263Z] Tool calls: getTokenPrice (total: 5)
+[2025-12-11T20:30:06.263Z] Tool call details:
+[
+  {
+    "function": {
+      "arguments": "{\"symbol\":\"BRETT\"}",
+      "name": "getTokenPrice"
+    },
+    "id": "tc_645b302a8322b",
+    "type": "function"
+  }
+]
+[2025-12-11T20:30:06.263Z] Added mock result for getTokenPrice
+[2025-12-11T20:30:06.263Z] 
+--- Iteration 6 ---
+[2025-12-11T20:30:06.264Z] Request body keys: model, messages, max_tokens, apiKey
+[2025-12-11T20:30:07.244Z] Response time: 980ms
+[2025-12-11T20:30:07.244Z] Finish reason: tool_calls
+[2025-12-11T20:30:07.244Z] Tokens: prompt=655, completion=17
+[2025-12-11T20:30:07.244Z] Tool calls: getTokenPrice (total: 6)
+[2025-12-11T20:30:07.245Z] Tool call details:
+[
+  {
+    "function": {
+      "arguments": "{\"symbol\":\"USDC\"}",
+      "name": "getTokenPrice"
+    },
+    "id": "tc_645b302b65623",
+    "type": "function"
+  }
+]
+[2025-12-11T20:30:07.245Z] Added mock result for getTokenPrice
+[2025-12-11T20:30:07.245Z] 
+--- Iteration 7 ---
+[2025-12-11T20:30:07.245Z] Request body keys: model, messages, max_tokens, apiKey
+[2025-12-11T20:30:08.216Z] Response time: 971ms
+[2025-12-11T20:30:08.216Z] Finish reason: tool_calls
+[2025-12-11T20:30:08.217Z] Tokens: prompt=728, completion=16
+[2025-12-11T20:30:08.217Z] Tool calls: getTokenPrice (total: 7)
+[2025-12-11T20:30:08.217Z] Tool call details:
+[
+  {
+    "function": {
+      "arguments": "{\"symbol\":\"USUS\"}",
+      "name": "getTokenPrice"
+    },
+    "id": "tc_645b302c5a6a6",
+    "type": "function"
+  }
+]
+[2025-12-11T20:30:08.217Z] Added mock result for getTokenPrice
+[2025-12-11T20:30:08.217Z] 
+--- Iteration 8 ---
+[2025-12-11T20:30:08.217Z] Request body keys: model, messages, max_tokens, apiKey
+[2025-12-11T20:30:09.190Z] Response time: 973ms
+[2025-12-11T20:30:09.190Z] Finish reason: tool_calls
+[2025-12-11T20:30:09.190Z] Tokens: prompt=801, completion=15
+[2025-12-11T20:30:09.191Z] Tool calls: getTokenPrice (total: 8)
+[2025-12-11T20:30:09.191Z] Tool call details:
+[
+  {
+    "function": {
+      "arguments": "{\"symbol\":\"BREZ\"}",
+      "name": "getTokenPrice"
+    },
+    "id": "tc_645b302d350d2",
+    "type": "function"
+  }
+]
+[2025-12-11T20:30:09.191Z] Added mock result for getTokenPrice
+[2025-12-11T20:30:09.191Z] 
+--- Iteration 9 ---
+[2025-12-11T20:30:09.191Z] Request body keys: model, messages, max_tokens, apiKey
+[2025-12-11T20:30:10.317Z] Response time: 1126ms
+[2025-12-11T20:30:10.317Z] Finish reason: tool_calls
+[2025-12-11T20:30:10.318Z] Tokens: prompt=874, completion=15
+[2025-12-11T20:30:10.318Z] Tool calls: getTokenPrice (total: 9)
+[2025-12-11T20:30:10.318Z] Tool call details:
+[
+  {
+    "function": {
+      "arguments": "{\"symbol\":\"BREZ\"}",
+      "name": "getTokenPrice"
+    },
+    "id": "tc_645b302e5002f",
+    "type": "function"
+  }
+]
+[2025-12-11T20:30:10.318Z] Added mock result for getTokenPrice
+[2025-12-11T20:30:10.319Z] 
+--- Iteration 10 ---
+[2025-12-11T20:30:10.319Z] Request body keys: model, messages, max_tokens, apiKey
+[2025-12-11T20:30:11.534Z] Response time: 1215ms
+[2025-12-11T20:30:11.535Z] Finish reason: tool_calls
+[2025-12-11T20:30:11.535Z] Tokens: prompt=947, completion=17
+[2025-12-11T20:30:11.536Z] Tool calls: getTokenPrice (total: 10)
+[2025-12-11T20:30:11.536Z] Tool call details:
+[
+  {
+    "function": {
+      "arguments": "{\"symbol\":\"BRETT\"}",
+      "name": "getTokenPrice"
+    },
+    "id": "tc_645b302f816d1",
+    "type": "function"
+  }
+]
+[2025-12-11T20:30:11.536Z] Added mock result for getTokenPrice
+[2025-12-11T20:30:11.536Z] 
+--- Iteration 11 ---
+[2025-12-11T20:30:11.536Z] Request body keys: model, messages, max_tokens, apiKey
+[2025-12-11T20:30:12.593Z] Response time: 1057ms
+[2025-12-11T20:30:12.594Z] Finish reason: tool_calls
+[2025-12-11T20:30:12.595Z] Tokens: prompt=1021, completion=17
+[2025-12-11T20:30:12.595Z] Tool calls: getTokenPrice (total: 11)
+[2025-12-11T20:30:12.595Z] Tool call details:
+[
+  {
+    "function": {
+      "arguments": "{\"symbol\":\"BRETT\"}",
+      "name": "getTokenPrice"
+    },
+    "id": "tc_645b303083a58",
+    "type": "function"
+  }
+]
+[2025-12-11T20:30:12.595Z] Added mock result for getTokenPrice
+[2025-12-11T20:30:12.596Z] 
+--- Iteration 12 ---
+[2025-12-11T20:30:12.596Z] Request body keys: model, messages, max_tokens, apiKey
+[2025-12-11T20:30:13.733Z] Response time: 1137ms
+[2025-12-11T20:30:13.733Z] Finish reason: tool_calls
+[2025-12-11T20:30:13.733Z] Tokens: prompt=1095, completion=17
+[2025-12-11T20:30:13.733Z] Tool calls: getTokenPrice (total: 12)
+[2025-12-11T20:30:13.733Z] Tool call details:
+[
+  {
+    "function": {
+      "arguments": "{\"symbol\":\"BRETT\"}",
+      "name": "getTokenPrice"
+    },
+    "id": "tc_645b30319d4d9",
+    "type": "function"
+  }
+]
+[2025-12-11T20:30:13.733Z] Added mock result for getTokenPrice
+[2025-12-11T20:30:13.733Z] 
+--- Iteration 13 ---
+[2025-12-11T20:30:13.733Z] Request body keys: model, messages, max_tokens, apiKey
+[2025-12-11T20:30:14.919Z] Response time: 1186ms
+[2025-12-11T20:30:14.919Z] Finish reason: tool_calls
+[2025-12-11T20:30:14.920Z] Tokens: prompt=1169, completion=17
+[2025-12-11T20:30:14.920Z] Tool calls: getTokenPrice (total: 13)
+[2025-12-11T20:30:14.920Z] Tool call details:
+[
+  {
+    "function": {
+      "arguments": "{\"symbol\":\"BREB?\"}",
+      "name": "getTokenPrice"
+    },
+    "id": "tc_645b3032bae8c",
+    "type": "function"
+  }
+]
+[2025-12-11T20:30:14.920Z] Added mock result for getTokenPrice
+[2025-12-11T20:30:14.920Z] 
+--- Iteration 14 ---
+[2025-12-11T20:30:14.920Z] Request body keys: model, messages, max_tokens, apiKey
+[2025-12-11T20:30:16.359Z] Response time: 1439ms
+[2025-12-11T20:30:16.359Z] Finish reason: tool_calls
+[2025-12-11T20:30:16.360Z] Tokens: prompt=1243, completion=16
+[2025-12-11T20:30:16.360Z] Tool calls: getTokenPrice (total: 14)
+[2025-12-11T20:30:16.360Z] Tool call details:
+[
+  {
+    "function": {
+      "arguments": "{\"symbol\":\"BRETT\"}",
+      "name": "getTokenPrice"
+    },
+    "id": "tc_645b303407c4b",
+    "type": "function"
+  }
+]
+[2025-12-11T20:30:16.360Z] Added mock result for getTokenPrice
+[2025-12-11T20:30:16.360Z] 
+--- Iteration 15 ---
+[2025-12-11T20:30:16.361Z] Request body keys: model, messages, max_tokens, apiKey
+[2025-12-11T20:30:17.587Z] Response time: 1226ms
+[2025-12-11T20:30:17.588Z] Finish reason: tool_calls
+[2025-12-11T20:30:17.588Z] Tokens: prompt=1317, completion=17
+[2025-12-11T20:30:17.589Z] Tool calls: getTokenPrice (total: 15)
+[2025-12-11T20:30:17.589Z] Tool call details:
+[
+  {
+    "function": {
+      "arguments": "{\"symbol\":\"BRETT\"}",
+      "name": "getTokenPrice"
+    },
+    "id": "tc_645b3035461ae",
+    "type": "function"
+  }
+]
+[2025-12-11T20:30:17.589Z] Added mock result for getTokenPrice
+[2025-12-11T20:30:17.589Z] ❌ FAILED: Hit max iterations (15) - model never returned text
+[2025-12-11T20:30:17.589Z] 
+================================================================================
+[2025-12-11T20:30:17.589Z] TEST 5: URGENCY_COUNTDOWN (gpt-oss-120b-f16)
+[2025-12-11T20:30:17.589Z] Tools provided: true
+[2025-12-11T20:30:17.590Z] ================================================================================
+[2025-12-11T20:30:17.590Z] System prompt:
+You are an autonomous trading agent on Aerodrome DEX (Base chain).
+
+⚠️ URGENT: Market conditions are changing rapidly. You have limited time to make a decision. 
+
+RULES:
+- Quick data gathering: 1-2 tool calls maximum
+- Then IMMEDIATELY output your decision
+- Delays cost money - every additional tool call wastes precious time
+- A fast reasonable decision beats a slow perfect one
+
+Available: getTokenPrice, getIndicators, getWalletBalance
+
+After minimal data gathering, OUTPUT NOW:
+{
+  "reasoning": "quick analysis...",
+  "trade_decisions": [{"token": "SYMBOL", "action": "buy|sell|hold", "amount_usd": 0, "rationale": "reason"}]
+}
+
+Speed is critical. Gather minimal data, then DECIDE.
+
+[2025-12-11T20:30:17.590Z] User prompt token: MONKE
+[2025-12-11T20:30:17.590Z] 
+--- Iteration 1 ---
+[2025-12-11T20:30:17.590Z] Request body keys: model, messages, max_tokens, apiKey, tools, tool_choice
+[2025-12-11T20:30:18.434Z] Response time: 844ms
+[2025-12-11T20:30:18.434Z] Finish reason: tool_calls
+[2025-12-11T20:30:18.435Z] Tokens: prompt=488, completion=22
+[2025-12-11T20:30:18.435Z] Tool calls: getTokenPrice (total: 1)
+[2025-12-11T20:30:18.435Z] Tool call details:
+[
+  {
+    "function": {
+      "arguments": "{\"symbol\":\"MONKE\"}",
+      "name": "getTokenPrice"
+    },
+    "id": "tc_645b30361ef50",
+    "type": "function"
+  }
+]
+[2025-12-11T20:30:18.435Z] Added mock result for getTokenPrice
+[2025-12-11T20:30:18.435Z] 
+--- Iteration 2 ---
+[2025-12-11T20:30:18.435Z] Request body keys: model, messages, max_tokens, apiKey, tools, tool_choice
+[2025-12-11T20:30:19.391Z] Response time: 956ms
+[2025-12-11T20:30:19.391Z] Finish reason: tool_calls
+[2025-12-11T20:30:19.391Z] Tokens: prompt=561, completion=23
+[2025-12-11T20:30:19.391Z] Tool calls: getIndicators (total: 2)
+[2025-12-11T20:30:19.391Z] Tool call details:
+[
+  {
+    "function": {
+      "arguments": "{\"symbol\":\"MONDA?\",\"timeframe\":\"5m\"}",
+      "name": "getIndicators"
+    },
+    "id": "tc_645b3036ff1b0",
+    "type": "function"
+  }
+]
+[2025-12-11T20:30:19.391Z] Added mock result for getIndicators
+[2025-12-11T20:30:19.392Z] 
+--- Iteration 3 ---
+[2025-12-11T20:30:19.392Z] Request body keys: model, messages, max_tokens, apiKey, tools, tool_choice
+[2025-12-11T20:30:20.346Z] Response time: 954ms
+[2025-12-11T20:30:20.346Z] Finish reason: tool_calls
+[2025-12-11T20:30:20.347Z] Tokens: prompt=649, completion=22
+[2025-12-11T20:30:20.347Z] Tool calls: getIndicators (total: 3)
+[2025-12-11T20:30:20.347Z] Tool call details:
+[
+  {
+    "function": {
+      "arguments": "{\"symbol\":\"MONKE\",\"timeframe\":\"4h\"}",
+      "name": "getIndicators"
+    },
+    "id": "tc_645b3037f1717",
+    "type": "function"
+  }
+]
+[2025-12-11T20:30:20.347Z] Added mock result for getIndicators
+[2025-12-11T20:30:20.348Z] 
+--- Iteration 4 ---
+[2025-12-11T20:30:20.348Z] Request body keys: model, messages, max_tokens, apiKey, tools, tool_choice
+[2025-12-11T20:30:21.330Z] Response time: 982ms
+[2025-12-11T20:30:21.330Z] Finish reason: tool_calls
+[2025-12-11T20:30:21.331Z] Tokens: prompt=738, completion=10
+[2025-12-11T20:30:21.331Z] Tool calls: getWalletBalance (total: 4)
+[2025-12-11T20:30:21.332Z] Tool call details:
+[
+  {
+    "function": {
+      "arguments": "{}",
+      "name": "getWalletBalance"
+    },
+    "id": "tc_645b3038e1668",
+    "type": "function"
+  }
+]
+[2025-12-11T20:30:21.332Z] Added mock result for getWalletBalance
+[2025-12-11T20:30:21.332Z] 
+--- Iteration 5 ---
+[2025-12-11T20:30:21.332Z] Request body keys: model, messages, max_tokens, apiKey, tools, tool_choice
+[2025-12-11T20:30:22.604Z] Response time: 1272ms
+[2025-12-11T20:30:22.604Z] Finish reason: tool_calls
+[2025-12-11T20:30:22.605Z] Tokens: prompt=808, completion=30
+[2025-12-11T20:30:22.605Z] Tool calls: getIndicators (total: 5)
+[2025-12-11T20:30:22.605Z] Tool call details:
+[
+  {
+    "function": {
+      "arguments": "{\"symbol\":\"MON\\\",\",\"timeframe\":\"4h\"}",
+      "name": "getIndicators"
+    },
+    "id": "tc_645b303a07cdd",
+    "type": "function"
+  }
+]
+[2025-12-11T20:30:22.605Z] Added mock result for getIndicators
+[2025-12-11T20:30:22.605Z] 
+--- Iteration 6 ---
+[2025-12-11T20:30:22.605Z] Request body keys: model, messages, max_tokens, apiKey, tools, tool_choice
+[2025-12-11T20:30:23.761Z] Response time: 1156ms
+[2025-12-11T20:30:23.762Z] Finish reason: tool_calls
+[2025-12-11T20:30:23.762Z] Tokens: prompt=894, completion=22
+[2025-12-11T20:30:23.762Z] Tool calls: getIndicators (total: 6)
+[2025-12-11T20:30:23.762Z] Tool call details:
+[
+  {
+    "function": {
+      "arguments": "{\"symbol\":\"MONKE\",\"timeframe\":\"4h\"}",
+      "name": "getIndicators"
+    },
+    "id": "tc_645b303b297e2",
+    "type": "function"
+  }
+]
+[2025-12-11T20:30:23.762Z] Added mock result for getIndicators
+[2025-12-11T20:30:23.763Z] 
+--- Iteration 7 ---
+[2025-12-11T20:30:23.763Z] Request body keys: model, messages, max_tokens, apiKey, tools, tool_choice
+[2025-12-11T20:30:24.914Z] Response time: 1151ms
+[2025-12-11T20:30:24.914Z] Finish reason: tool_calls
+[2025-12-11T20:30:24.914Z] Tokens: prompt=983, completion=26
+[2025-12-11T20:30:24.915Z] Tool calls: getIndicators (total: 7)
+[2025-12-11T20:30:24.915Z] Tool call details:
+[
+  {
+    "function": {
+      "arguments": "{\"symbol\":\"MONK?\",\"timeframe\":\"5m\"}",
+      "name": "getIndicators"
+    },
+    "id": "tc_645b303c436be",
+    "type": "function"
+  }
+]
+[2025-12-11T20:30:24.915Z] Added mock result for getIndicators
+[2025-12-11T20:30:24.915Z] 
+--- Iteration 8 ---
+[2025-12-11T20:30:24.915Z] Request body keys: model, messages, max_tokens, apiKey, tools, tool_choice
+[2025-12-11T20:30:26.217Z] Response time: 1302ms
+[2025-12-11T20:30:26.217Z] Finish reason: tool_calls
+[2025-12-11T20:30:26.217Z] Tokens: prompt=1071, completion=22
+[2025-12-11T20:30:26.218Z] Tool calls: getIndicators (total: 8)
+[2025-12-11T20:30:26.218Z] Tool call details:
+[
+  {
+    "function": {
+      "arguments": "{\"symbol\":\"MONKE\",\"timeframe\":\"5m\"}",
+      "name": "getIndicators"
+    },
+    "id": "tc_645b303d852b3",
+    "type": "function"
+  }
+]
+[2025-12-11T20:30:26.218Z] Added mock result for getIndicators
+[2025-12-11T20:30:26.218Z] 
+--- Iteration 9 ---
+[2025-12-11T20:30:26.218Z] Request body keys: model, messages, max_tokens, apiKey, tools, tool_choice
+[2025-12-11T20:30:27.683Z] Response time: 1465ms
+[2025-12-11T20:30:27.683Z] Finish reason: tool_calls
+[2025-12-11T20:30:27.683Z] Tokens: prompt=1160, completion=22
+[2025-12-11T20:30:27.684Z] Tool calls: getIndicators (total: 9)
+[2025-12-11T20:30:27.684Z] Tool call details:
+[
+  {
+    "function": {
+      "arguments": "{\"symbol\":\"MONKE\",\"timeframe\":\"4h\"}",
+      "name": "getIndicators"
+    },
+    "id": "tc_645b303eea73c",
+    "type": "function"
+  }
+]
+[2025-12-11T20:30:27.684Z] Added mock result for getIndicators
+[2025-12-11T20:30:27.684Z] 
+--- Iteration 10 ---
+[2025-12-11T20:30:27.684Z] Request body keys: model, messages, max_tokens, apiKey, tools, tool_choice
+[2025-12-11T20:30:28.840Z] Response time: 1156ms
+[2025-12-11T20:30:28.840Z] Finish reason: tool_calls
+[2025-12-11T20:30:28.840Z] Tokens: prompt=1249, completion=22
+[2025-12-11T20:30:28.841Z] Tool calls: getIndicators (total: 10)
+[2025-12-11T20:30:28.841Z] Tool call details:
+[
+  {
+    "function": {
+      "arguments": "{\"symbol\":\"MONKE\",\"timeframe\":\"4h\"}",
+      "name": "getIndicators"
+    },
+    "id": "tc_645b30400b73b",
+    "type": "function"
+  }
+]
+[2025-12-11T20:30:28.841Z] Added mock result for getIndicators
+[2025-12-11T20:30:28.841Z] 
+--- Iteration 11 ---
+[2025-12-11T20:30:28.841Z] Request body keys: model, messages, max_tokens, apiKey, tools, tool_choice
+[2025-12-11T20:30:30.111Z] Response time: 1270ms
+[2025-12-11T20:30:30.112Z] Finish reason: tool_calls
+[2025-12-11T20:30:30.112Z] Tokens: prompt=1338, completion=22
+[2025-12-11T20:30:30.112Z] Tool calls: getIndicators (total: 11)
+[2025-12-11T20:30:30.112Z] Tool call details:
+[
+  {
+    "function": {
+      "arguments": "{\"symbol\":\"MONKE\",\"timeframe\":\"4h\"}",
+      "name": "getIndicators"
+    },
+    "id": "tc_645b3041384e8",
+    "type": "function"
+  }
+]
+[2025-12-11T20:30:30.112Z] Added mock result for getIndicators
+[2025-12-11T20:30:30.113Z] 
+--- Iteration 12 ---
+[2025-12-11T20:30:30.113Z] Request body keys: model, messages, max_tokens, apiKey, tools, tool_choice
+[2025-12-11T20:30:31.364Z] Response time: 1251ms
+[2025-12-11T20:30:31.365Z] Finish reason: tool_calls
+[2025-12-11T20:30:31.365Z] Tokens: prompt=1427, completion=24
+[2025-12-11T20:30:31.365Z] Tool calls: getIndicators (total: 12)
+[2025-12-11T20:30:31.365Z] Tool call details:
+[
+  {
+    "function": {
+      "arguments": "{\"symbol\":\"MONC\",\"timeframe\":\"5m\"}",
+      "name": "getIndicators"
+    },
+    "id": "tc_645b304272975",
+    "type": "function"
+  }
+]
+[2025-12-11T20:30:31.365Z] Added mock result for getIndicators
+[2025-12-11T20:30:31.365Z] 
+--- Iteration 13 ---
+[2025-12-11T20:30:31.365Z] Request body keys: model, messages, max_tokens, apiKey, tools, tool_choice
+[2025-12-11T20:30:32.672Z] Response time: 1307ms
+[2025-12-11T20:30:32.672Z] Finish reason: tool_calls
+[2025-12-11T20:30:32.672Z] Tokens: prompt=1514, completion=15
+[2025-12-11T20:30:32.673Z] Tool calls: getTokenPrice (total: 13)
+[2025-12-11T20:30:32.673Z] Tool call details:
+[
+  {
+    "function": {
+      "arguments": "{\"symbol\":\"MONKE\"}",
+      "name": "getTokenPrice"
+    },
+    "id": "tc_645b30439d76d",
+    "type": "function"
+  }
+]
+[2025-12-11T20:30:32.673Z] Added mock result for getTokenPrice
+[2025-12-11T20:30:32.673Z] 
+--- Iteration 14 ---
+[2025-12-11T20:30:32.673Z] Request body keys: model, messages, max_tokens, apiKey, tools, tool_choice
+[2025-12-11T20:30:34.174Z] Response time: 1501ms
+[2025-12-11T20:30:34.174Z] Finish reason: tool_calls
+[2025-12-11T20:30:34.174Z] Tokens: prompt=1587, completion=20
+[2025-12-11T20:30:34.174Z] Tool calls: getIndicators (total: 14)
+[2025-12-11T20:30:34.175Z] Tool call details:
+[
+  {
+    "function": {
+      "arguments": "{\"symbol\":\"MONKE\",\"timeframe\":\"4h\"}",
+      "name": "getIndicators"
+    },
+    "id": "tc_645b304517600",
+    "type": "function"
+  }
+]
+[2025-12-11T20:30:34.175Z] Added mock result for getIndicators
+[2025-12-11T20:30:34.175Z] 
+--- Iteration 15 ---
+[2025-12-11T20:30:34.175Z] Request body keys: model, messages, max_tokens, apiKey, tools, tool_choice
+[2025-12-11T20:30:35.561Z] Response time: 1386ms
+[2025-12-11T20:30:35.561Z] Finish reason: tool_calls
+[2025-12-11T20:30:35.561Z] Tokens: prompt=1676, completion=22
+[2025-12-11T20:30:35.562Z] Tool calls: getIndicators (total: 15)
+[2025-12-11T20:30:35.562Z] Tool call details:
+[
+  {
+    "function": {
+      "arguments": "{\"symbol\":\"MONKE\",\"timeframe\":\"4h\"}",
+      "name": "getIndicators"
+    },
+    "id": "tc_645b30466df4c",
+    "type": "function"
+  }
+]
+[2025-12-11T20:30:35.562Z] Added mock result for getIndicators
+[2025-12-11T20:30:35.562Z] ❌ FAILED: Hit max iterations (15) - model never returned text
+[2025-12-11T20:30:35.562Z] 
+================================================================================
+[2025-12-11T20:30:35.562Z] SUMMARY
+[2025-12-11T20:30:35.563Z] ================================================================================
+[2025-12-11T20:30:35.563Z] 
+| Test | Strategy | Tools Provided | Tool Calls | Iterations | Got Text |
+[2025-12-11T20:30:35.563Z] |------|----------|----------------|------------|------------|----------|
+[2025-12-11T20:30:35.563Z] | 1 | EXPLICIT_TOOL_LIMIT    | Yes            | 15         | 15         | ❌ |
+[2025-12-11T20:30:35.563Z] | 2 | CONFIDENCE_REASSURANCE | Yes            | 15         | 15         | ❌ |
+[2025-12-11T20:30:35.563Z] | 3 | TWO_PHASE_STRUCTURE    | Yes            | 15         | 15         | ❌ |
+[2025-12-11T20:30:35.564Z] | 4 | TOOL_FREE_DECISION     | No             | 15         | 15         | ❌ |
+[2025-12-11T20:30:35.564Z] | 5 | URGENCY_COUNTDOWN      | Yes            | 15         | 15         | ❌ |
+[2025-12-11T20:30:35.564Z] 
+Success rate: 0/5
+[2025-12-11T20:30:35.564Z] Results written to: /Users/derrek/code/aerodrome-eigen-agent/log-files/eigenai-tests/2025-12-11T20-29-04-564Z_gpt-oss-120b-f16.txt

@@ -1,0 +1,209 @@
+################################################################################
+EigenAI Qwen System Prompt Variations Test
+2025-12-11T20:40:04.788Z
+Model: qwen3-32b-128k-bf16
+API URL: https://determinal-api.eigenarcade.com
+
+[2025-12-11T20:40:04.788Z] 
+================================================================================
+[2025-12-11T20:40:04.788Z] TEST 1: TOOL_ONLY_SYNTAX (qwen3-32b-128k-bf16)
+[2025-12-11T20:40:04.788Z] Force tool_choice=required: false
+[2025-12-11T20:40:04.788Z] ================================================================================
+[2025-12-11T20:40:04.788Z] System prompt:
+You are a function-calling assistant. You ONLY communicate via tool calls.
+
+DO NOT output any text. DO NOT output JSON directly. You must call a function.
+
+To analyze a token, call:
+getTokenPrice with {"symbol": "TOKEN_NAME"}
+
+Your first action must be a function call. Example of what your output should look like:
+<function_call>getTokenPrice({"symbol": "AERO"})</function_call>
+
+Call getTokenPrice now. No text output - only function calls.
+
+[2025-12-11T20:40:04.788Z] User prompt token: BTC
+[2025-12-11T20:40:04.789Z] 
+--- Iteration 1 ---
+[2025-12-11T20:40:04.789Z] Request body keys: model, messages, max_tokens, apiKey, tools, tool_choice
+[2025-12-11T20:40:09.573Z] Response time: 4784ms
+[2025-12-11T20:40:09.573Z] Finish reason: stop
+[2025-12-11T20:40:09.573Z] Tokens: prompt=202, completion=160
+[2025-12-11T20:40:09.574Z] Text response (65 chars):
+[2025-12-11T20:40:09.574Z] 
+
+<function_call>getTokenPrice({"symbol": "BTC"})</function_call>
+[2025-12-11T20:40:09.574Z] 
+⚠️ WARNING: Responded without using any tools!
+[2025-12-11T20:40:09.574Z] 
+================================================================================
+[2025-12-11T20:40:09.574Z] TEST 2: CHAIN_OF_THOUGHT (qwen3-32b-128k-bf16)
+[2025-12-11T20:40:09.574Z] Force tool_choice=required: false
+[2025-12-11T20:40:09.574Z] ================================================================================
+[2025-12-11T20:40:09.574Z] System prompt:
+<think>
+I need to analyze a token. I don't have market data in my training. I must call tools.
+Step 1: I will call getTokenPrice to get the current price.
+Step 2: I will call getIndicators to get technical analysis.
+Step 3: Only then will I provide my decision.
+</think>
+
+You are a trading agent. You just completed your thinking above. Now execute Step 1:
+Call the getTokenPrice function with the token symbol from the user's message.
+
+IMPORTANT: Your next output must be a tool call, not text.
+
+[2025-12-11T20:40:09.574Z] User prompt token: ETH
+[2025-12-11T20:40:09.575Z] 
+--- Iteration 1 ---
+[2025-12-11T20:40:09.575Z] Request body keys: model, messages, max_tokens, apiKey, tools, tool_choice
+[2025-12-11T20:40:18.331Z] Response time: 8756ms
+[2025-12-11T20:40:18.331Z] Finish reason: stop
+[2025-12-11T20:40:18.331Z] Tokens: prompt=221, completion=311
+[2025-12-11T20:40:18.332Z] Text response (86 chars):
+[2025-12-11T20:40:18.332Z] 
+
+```tool_code
+getTokenPrice({
+  "exchange": "Aerodrome DEX",
+  "symbol": "ETH"
+})
+```
+[2025-12-11T20:40:18.332Z] 
+⚠️ WARNING: Responded without using any tools!
+[2025-12-11T20:40:18.332Z] 
+================================================================================
+[2025-12-11T20:40:18.332Z] TEST 3: PUNISH_TEXT (qwen3-32b-128k-bf16)
+[2025-12-11T20:40:18.332Z] Force tool_choice=required: false
+[2025-12-11T20:40:18.332Z] ================================================================================
+[2025-12-11T20:40:18.332Z] System prompt:
+SYSTEM MODE: FUNCTION_CALLING_ONLY
+
+ERROR HANDLER: Any text response will trigger error code E-4001 and your response will be discarded.
+
+VALID RESPONSE: Function call to getTokenPrice, getIndicators, or getWalletBalance
+INVALID RESPONSE: Any text, any JSON, any explanation
+
+The only way to respond without triggering E-4001 is to make a tool call.
+
+Your response will be parsed by a function-call-only parser that throws on text.
+
+Make a function call now.
+
+[2025-12-11T20:40:18.333Z] User prompt token: AERO
+[2025-12-11T20:40:18.333Z] 
+--- Iteration 1 ---
+[2025-12-11T20:40:18.333Z] Request body keys: model, messages, max_tokens, apiKey, tools, tool_choice
+[2025-12-11T20:40:29.239Z] Response time: 10906ms
+[2025-12-11T20:40:29.239Z] Finish reason: stop
+[2025-12-11T20:40:29.240Z] Tokens: prompt=209, completion=393
+[2025-12-11T20:40:29.240Z] Text response (21 chars):
+[2025-12-11T20:40:29.240Z] 
+
+getTokenPrice(AERO)
+[2025-12-11T20:40:29.240Z] 
+⚠️ WARNING: Responded without using any tools!
+[2025-12-11T20:40:29.240Z] 
+================================================================================
+[2025-12-11T20:40:29.240Z] TEST 4: SIMULATE_RETRY (qwen3-32b-128k-bf16)
+[2025-12-11T20:40:29.241Z] Force tool_choice=required: false
+[2025-12-11T20:40:29.241Z] ================================================================================
+[2025-12-11T20:40:29.241Z] System prompt:
+[CONVERSATION CONTEXT]
+You previously called getTokenPrice and got: {"symbol": "X", "priceUsd": null, "error": "rate_limited"}
+
+The rate limit has cleared. You need to RETRY the tool call.
+
+Call getTokenPrice again with the token symbol. Do not output text - retry the function call.
+
+Previous failed call: getTokenPrice({"symbol": "?"})
+Your retry: [MAKE THE CALL NOW]
+
+[2025-12-11T20:40:29.241Z] User prompt token: BRETT
+[2025-12-11T20:40:29.241Z] 
+--- Iteration 1 ---
+[2025-12-11T20:40:29.241Z] Request body keys: model, messages, max_tokens, apiKey, tools, tool_choice
+[2025-12-11T20:40:51.270Z] Response time: 22029ms
+[2025-12-11T20:40:51.271Z] Finish reason: stop
+[2025-12-11T20:40:51.271Z] Tokens: prompt=195, completion=819
+[2025-12-11T20:40:51.271Z] Text response (36 chars):
+[2025-12-11T20:40:51.272Z] 
+
+getTokenPrice({"symbol": "BRETT"})
+[2025-12-11T20:40:51.272Z] 
+⚠️ WARNING: Responded without using any tools!
+[2025-12-11T20:40:51.272Z] 
+================================================================================
+[2025-12-11T20:40:51.272Z] TEST 5: EXTREME_MINIMAL (qwen3-32b-128k-bf16)
+[2025-12-11T20:40:51.272Z] Force tool_choice=required: false
+[2025-12-11T20:40:51.272Z] ================================================================================
+[2025-12-11T20:40:51.272Z] System prompt:
+CALL getTokenPrice({"symbol":"AERO"}) NOW.
+
+No text. Only function call. Execute.
+
+[2025-12-11T20:40:51.273Z] User prompt token: MONKE
+[2025-12-11T20:40:51.273Z] 
+--- Iteration 1 ---
+[2025-12-11T20:40:51.273Z] Request body keys: model, messages, max_tokens, apiKey, tools, tool_choice
+[2025-12-11T20:41:16.518Z] Response time: 25245ms
+[2025-12-11T20:41:16.519Z] Finish reason: stop
+[2025-12-11T20:41:16.519Z] Tokens: prompt=127, completion=940
+[2025-12-11T20:41:16.519Z] Text response (44 chars):
+[2025-12-11T20:41:16.519Z] 
+
+CALL getTokenPrice({"symbol":"AERO"}) NOW.
+[2025-12-11T20:41:16.519Z] 
+⚠️ WARNING: Responded without using any tools!
+[2025-12-11T20:41:16.519Z] 
+################################################################################
+[2025-12-11T20:41:16.519Z] BONUS TEST: Using tool_choice="required" at API level
+[2025-12-11T20:41:16.520Z] ################################################################################
+[2025-12-11T20:41:16.520Z] 
+================================================================================
+[2025-12-11T20:41:16.520Z] TEST 6: FORCE_REQUIRED_API (qwen3-32b-128k-bf16)
+[2025-12-11T20:41:16.520Z] Force tool_choice=required: true
+[2025-12-11T20:41:16.520Z] ================================================================================
+[2025-12-11T20:41:16.520Z] System prompt:
+You are a function-calling assistant. You ONLY communicate via tool calls.
+
+DO NOT output any text. DO NOT output JSON directly. You must call a function.
+
+To analyze a token, call:
+getTokenPrice with {"symbol": "TOKEN_NAME"}
+
+Your first action must be a function call. Example of what your output should look like:
+<function_call>getTokenPrice({"symbol": "AERO"})</function_call>
+
+Call getTokenPrice now. No text output - only function calls.
+
+[2025-12-11T20:41:16.520Z] User prompt token: BTC
+[2025-12-11T20:41:16.520Z] 
+--- Iteration 1 ---
+[2025-12-11T20:41:16.520Z] Request body keys: model, messages, max_tokens, apiKey, tools, tool_choice
+[2025-12-11T20:41:33.815Z] Response time: 17295ms
+[2025-12-11T20:41:33.815Z] Finish reason: stop
+[2025-12-11T20:41:33.816Z] Tokens: prompt=201, completion=641
+[2025-12-11T20:41:33.816Z] Text response (65 chars):
+[2025-12-11T20:41:33.816Z] 
+
+<function_call>getTokenPrice({"symbol": "BTC"})</function_call>
+[2025-12-11T20:41:33.816Z] 
+⚠️ WARNING: Responded without using any tools!
+[2025-12-11T20:41:33.816Z] 
+================================================================================
+[2025-12-11T20:41:33.816Z] SUMMARY
+[2025-12-11T20:41:33.816Z] ================================================================================
+[2025-12-11T20:41:33.816Z] 
+| Test | Strategy | Used Tools | Tool Calls | Hallucinated |
+[2025-12-11T20:41:33.816Z] |------|----------|------------|------------|--------------|
+[2025-12-11T20:41:33.817Z] | 1 | TOOL_ONLY_SYNTAX         | ❌          | 0          | ✅ No       |
+[2025-12-11T20:41:33.817Z] | 2 | CHAIN_OF_THOUGHT         | ❌          | 0          | ✅ No       |
+[2025-12-11T20:41:33.817Z] | 3 | PUNISH_TEXT              | ❌          | 0          | ✅ No       |
+[2025-12-11T20:41:33.817Z] | 4 | SIMULATE_RETRY           | ❌          | 0          | ✅ No       |
+[2025-12-11T20:41:33.817Z] | 5 | EXTREME_MINIMAL          | ❌          | 0          | ✅ No       |
+[2025-12-11T20:41:33.817Z] | 6 | FORCE_REQUIRED_API       | ❌          | 0          | ✅ No       |
+[2025-12-11T20:41:33.817Z] 
+Tool usage rate: 0/6
+[2025-12-11T20:41:33.817Z] No hallucination rate: 6/6
+[2025-12-11T20:41:33.818Z] Results written to: /Users/derrek/code/aerodrome-eigen-agent/log-files/eigenai-tests/2025-12-11T20-40-04-787Z_qwen3-32b-128k-bf16.txt
