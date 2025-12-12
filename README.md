@@ -207,6 +207,9 @@ ALCHEMY_API_KEY=...
 COINGECKO_API_KEY=...   # For technical indicators
 GROK_API_KEY=...        # For X/Twitter sentiment
 
+# Trading pairs (optional - defaults to all supported pairs)
+TRADING_PAIRS=WETH/USDC,AERO/USDC,BRETT/WETH
+
 # Safety
 DRY_RUN=true            # Set to block all trades
 ```
@@ -295,16 +298,58 @@ Signatures are automatically submitted every 15 minutes. See [docs/recall-integr
 - **AERO** - Aerodrome Finance
 - **cbETH** - Coinbase Wrapped Staked ETH
 - **cbBTC** - Coinbase Wrapped BTC
+- **WBTC** - Wrapped BTC
 - **VIRTUAL** - Virtual Protocol
+- **EIGEN** - Eigen (restaking protocol)
 
 ### Community Tokens
 - **BRETT** - Based Brett
 - **DEGEN** - Farcaster community token
 - **TOSHI** - Toshi the Cat
+- **MIGGLES** - Mr Miggles
+- **PONKE** - Ponke
 
 ### Stablecoins
 - **USDbC** - Bridged USDC
 - **DAI** - Dai Stablecoin
+
+## ⚙️ Configurable Trading Pairs
+
+By default, the agent trades a predefined set of pairs. You can customize which pairs to trade via the `TRADING_PAIRS` environment variable.
+
+### Configuration
+
+```bash
+# Format: QUOTE/BASE pairs, comma-separated
+TRADING_PAIRS=WETH/USDC,AERO/USDC,BRETT/WETH
+```
+
+### Examples
+
+| Use Case | Configuration |
+|----------|---------------|
+| **Minimal** | `TRADING_PAIRS=WETH/USDC` |
+| **DeFi Focus** | `TRADING_PAIRS=WETH/USDC,AERO/USDC,cbBTC/USDC` |
+| **Meme Coins** | `TRADING_PAIRS=BRETT/WETH,MIGGLES/WETH,PONKE/WETH` |
+| **Competition** | `TRADING_PAIRS=WBTC/USDC,EIGEN/WETH,BRETT/WETH,MIGGLES/WETH,PONKE/WETH` |
+
+### Format Rules
+
+- **Separator**: Use commas (`,`) or spaces
+- **Case**: Case-insensitive (`weth/usdc` = `WETH/USDC`)
+- **Order**: `QUOTE/BASE` (what you're trading / what you're trading against)
+- **Validation**: Invalid pairs are skipped with a warning
+- **Fallback**: If all pairs invalid or empty, uses defaults
+
+### Token Validation
+
+Run the token validation test to verify all configured tokens are supported by data providers:
+
+```bash
+pnpm test src/config/__tests__/token-provider-validation.test.ts
+```
+
+This checks DexScreener, CoinGecko, and Alchemy support for each token.
 
 ## 🛠️ CLI Commands
 

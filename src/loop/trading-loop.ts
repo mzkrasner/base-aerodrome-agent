@@ -11,7 +11,7 @@
  * > Build an agent that reasons about which tools it needs.
  */
 import { aerodromeAgent } from '../agents/trading.agent.js'
-import { DEFAULT_TRADING_PAIRS, TRADING_CONFIG } from '../config/index.js'
+import { TRADING_CONFIG, getTradingPairs } from '../config/index.js'
 import { tradingDiaryRepo } from '../database/repositories/index.js'
 import type { DiaryEntryForContext } from '../database/schema/trading/types.js'
 import { getAllBalances } from '../execution/wallet.js'
@@ -271,9 +271,12 @@ function parseAgentDecision(responseText: string): {
  * Runs continuously, processing each configured pair
  */
 export async function startTradingLoop(): Promise<void> {
+  // Load trading pairs from environment or use defaults
+  const tradingPairs = getTradingPairs()
+
   console.log('🚀 Starting Aerodrome Trading Loop')
   console.log(`⏱️  Interval: ${TRADING_CONFIG.iterationIntervalMs / 60000} minutes`)
-  console.log(`🎯 Pairs: ${DEFAULT_TRADING_PAIRS.map((p) => `${p.quote}/${p.base}`).join(', ')}`)
+  console.log(`🎯 Pairs: ${tradingPairs.map((p) => `${p.quote}/${p.base}`).join(', ')}`)
 
   // Get starting iteration number from database
   let iterationNumber = await tradingDiaryRepo.getCurrentIterationNumber()
@@ -293,7 +296,7 @@ export async function startTradingLoop(): Promise<void> {
     const recentHistory = await tradingDiaryRepo.getRecentEntries(20)
     console.log(`📚 Loaded ${recentHistory.length} recent decisions for context`)
 
-    for (const pair of DEFAULT_TRADING_PAIRS) {
+    for (const pair of tradingPairs) {
       // Get pair-specific history
       const pairHistory = await tradingDiaryRepo.getRecentEntriesForPair(pair.base, pair.quote, 10)
 

@@ -1,9 +1,68 @@
+import { DEFAULT_TRADING_PAIRS } from './tokens.js'
+
 /**
  * Configuration exports for Aerodrome Trading Agent
  */
 
 export * from './tokens.js'
 export * from './contracts.js'
+
+/** Trading pair structure */
+export interface TradingPair {
+  base: string
+  quote: string
+}
+
+/**
+ * Parse trading pairs from environment variable
+ *
+ * Supports formats:
+ * - "WETH/USDC,AERO/USDC" (comma-separated)
+ * - "WETH/USDC AERO/USDC" (space-separated)
+ *
+ * @returns Parsed trading pairs or default pairs if not set
+ */
+export function getTradingPairs(): TradingPair[] {
+  const envPairs = process.env.TRADING_PAIRS
+
+  if (!envPairs || envPairs.trim() === '') {
+    return [...DEFAULT_TRADING_PAIRS]
+  }
+
+  // Support both comma and space separators
+  const separator = envPairs.includes(',') ? ',' : ' '
+  const pairStrings = envPairs.split(separator).filter((s) => s.trim())
+
+  const pairs: TradingPair[] = []
+  for (const pairStr of pairStrings) {
+    const trimmed = pairStr.trim()
+    if (!trimmed.includes('/')) {
+      console.warn(
+        `[Config] Invalid pair format "${trimmed}" - expected "QUOTE/BASE" (e.g., "WETH/USDC")`
+      )
+      continue
+    }
+
+    const [quote, base] = trimmed.split('/')
+    if (!quote || !base) {
+      console.warn(`[Config] Invalid pair "${trimmed}" - both quote and base required`)
+      continue
+    }
+
+    pairs.push({
+      quote: quote.trim().toUpperCase(),
+      base: base.trim().toUpperCase(),
+    })
+  }
+
+  if (pairs.length === 0) {
+    console.warn('[Config] No valid pairs parsed from TRADING_PAIRS, using defaults')
+    return [...DEFAULT_TRADING_PAIRS]
+  }
+
+  console.log(`[Config] Loaded ${pairs.length} trading pairs from environment`)
+  return pairs
+}
 
 /**
  * Environment configuration

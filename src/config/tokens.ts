@@ -22,8 +22,12 @@ export const TOKEN_ADDRESSES = {
   cbETH: '0x2Ae3F1Ec7F1F5012CFEab0185bfc7aa3cf0DEc22',
   /** Coinbase Wrapped BTC */
   cbBTC: '0xcbB7C0000aB88B473b1f5aFd9ef808440eed33Bf',
+  /** Wrapped BTC on Base */
+  WBTC: '0x0555E30da8f98308EdB960aa94C0Db47230d2B9c',
   /** Virtual Protocol - AI agents platform */
   VIRTUAL: '0x0b3e328455c4059EEb9e3f84b5543F74E24e7E1b',
+  /** Eigen - restaking protocol token */
+  EIGEN: '0x2081ab0d9ec9e4303234ab26d86b20b3367946ee',
 
   // === Community/Meme tokens ===
   /** Based Brett - top meme coin on Base */
@@ -32,6 +36,10 @@ export const TOKEN_ADDRESSES = {
   DEGEN: '0x4ed4E862860beD51a9570b96d89aF5E1B0Efefed',
   /** Toshi - Base native meme coin */
   TOSHI: '0xAC1Bd2486aAf3B5C0fc3Fd868558b082a531B2B4',
+  /** Mr Miggles - Base meme coin */
+  MIGGLES: '0xB1a03EdA10342529bBF8EB700a06C60441fEf25d',
+  /** Ponke - Base meme coin */
+  PONKE: '0x4a0c64af541439898448659aedcec8e8e819fc53',
 } as const
 
 /** Token symbol to address mapping */
@@ -100,11 +108,25 @@ export const TOKEN_METADATA: Record<TokenSymbol, TokenMetadata> = {
     name: 'Coinbase Wrapped BTC',
     isStablecoin: false,
   },
+  WBTC: {
+    symbol: 'WBTC',
+    address: TOKEN_ADDRESSES.WBTC,
+    decimals: 8,
+    name: 'Wrapped BTC',
+    isStablecoin: false,
+  },
   VIRTUAL: {
     symbol: 'VIRTUAL',
     address: TOKEN_ADDRESSES.VIRTUAL,
     decimals: 18,
     name: 'Virtual Protocol',
+    isStablecoin: false,
+  },
+  EIGEN: {
+    symbol: 'EIGEN',
+    address: TOKEN_ADDRESSES.EIGEN,
+    decimals: 18,
+    name: 'Eigen',
     isStablecoin: false,
   },
 
@@ -128,6 +150,20 @@ export const TOKEN_METADATA: Record<TokenSymbol, TokenMetadata> = {
     address: TOKEN_ADDRESSES.TOSHI,
     decimals: 18,
     name: 'Toshi',
+    isStablecoin: false,
+  },
+  MIGGLES: {
+    symbol: 'MIGGLES',
+    address: TOKEN_ADDRESSES.MIGGLES,
+    decimals: 18,
+    name: 'Mr Miggles',
+    isStablecoin: false,
+  },
+  PONKE: {
+    symbol: 'PONKE',
+    address: TOKEN_ADDRESSES.PONKE,
+    decimals: 18,
+    name: 'Ponke',
     isStablecoin: false,
   },
 }
