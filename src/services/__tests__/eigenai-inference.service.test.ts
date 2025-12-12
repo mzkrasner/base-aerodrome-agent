@@ -9,7 +9,7 @@ import { beforeEach, describe, expect, it } from 'vitest'
 import { aerodromeAgent } from '../../agents/trading.agent'
 import { db } from '../../database/db'
 import { eigenaiInferences } from '../../database/schema/eigenai/defs'
-import { initializeEigenAIInferenceTracking } from '../eigenai-inference.service'
+import { initializeEigenAIInferenceTracking } from '../eigen/eigenai-inference.service'
 
 const isEigenAI = process.env.LLM_PROVIDER === 'eigenai'
 const hasAuth = !!(process.env.EIGENAI_API_KEY || process.env.EIGENAI_PRIVATE_KEY)

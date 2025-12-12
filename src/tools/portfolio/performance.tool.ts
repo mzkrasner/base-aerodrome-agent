@@ -10,7 +10,7 @@ import { createTool } from '@mastra/core/tools'
 import { z } from 'zod'
 
 import { resolveToken } from '../../config/tokens.js'
-import { performanceTracker } from '../../services/performance-tracker.js'
+import { performanceTracker } from '../../services/performance/performance-tracker.js'
 
 /**
  * Helper to get current price for a token

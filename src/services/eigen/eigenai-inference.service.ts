@@ -6,10 +6,10 @@
  */
 import { eq, inArray } from 'drizzle-orm'
 
-import { db } from '../database/db.js'
-import { eigenaiInferences } from '../database/schema/index.js'
-import { setEigenAIVerificationCallback } from '../lib/llm/index.js'
-import type { EigenAIVerificationData } from '../lib/llm/types.js'
+import { db } from '../../database/db.js'
+import { eigenaiInferences } from '../../database/schema/index.js'
+import { setEigenAIVerificationCallback } from '../../lib/llm/index.js'
+import type { EigenAIVerificationData } from '../../lib/llm/types.js'
 
 /**
  * EigenAI Inference Tracker
@@ -49,6 +49,22 @@ export class EigenAIInferenceTracker {
       .where(eq(eigenaiInferences.submittedToRecall, false))
       .limit(limit)
       .orderBy(eigenaiInferences.inferredAt)
+  }
+
+  /**
+   * Get the most recent unsubmitted inference
+   *
+   * Used for periodic submission to Recall (1 per 15 minutes)
+   * @returns The most recent unsubmitted inference, or null if none
+   */
+  async getMostRecentUnsubmitted() {
+    const [result] = await db
+      .select()
+      .from(eigenaiInferences)
+      .where(eq(eigenaiInferences.submittedToRecall, false))
+      .orderBy(eigenaiInferences.inferredAt)
+      .limit(1)
+    return result ?? null
   }
 
   /**

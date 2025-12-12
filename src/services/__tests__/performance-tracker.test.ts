@@ -12,7 +12,7 @@ import {
   positions,
   swapTransactions,
 } from '../../database/schema/trading/defs.js'
-import { performanceTracker } from '../performance-tracker.js'
+import { performanceTracker } from '../performance/performance-tracker.js'
 
 describe('PerformanceTracker', () => {
   beforeEach(async () => {

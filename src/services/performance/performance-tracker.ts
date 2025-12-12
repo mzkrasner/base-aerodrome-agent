@@ -10,14 +10,18 @@
  */
 import { and, desc, eq, gt } from 'drizzle-orm'
 
-import { db } from '../database/db.js'
-import { portfolioSnapshots, positions, swapTransactions } from '../database/schema/trading/defs.js'
+import { db } from '../../database/db.js'
+import {
+  portfolioSnapshots,
+  positions,
+  swapTransactions,
+} from '../../database/schema/trading/defs.js'
 import type {
   NewPortfolioSnapshot,
   NewPosition,
   PortfolioSnapshot,
   Position,
-} from '../database/schema/trading/types.js'
+} from '../../database/schema/trading/types.js'
 
 /**
  * Performance metrics summary

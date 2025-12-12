@@ -2,7 +2,8 @@ import 'dotenv/config'
 
 import { closeConnection, healthCheck } from './database/db.js'
 import { startTradingLoop } from './loop/index.js'
-import { initializeEigenAIInferenceTracking } from './services/eigenai-inference.service.js'
+import { initializeEigenAIInferenceTracking } from './services/eigen/eigenai-inference.service.js'
+import { initializeRecallSubmission, recallSubmissionService } from './services/recall/index.js'
 
 /**
  * Aerodrome Trading Agent
@@ -76,6 +77,9 @@ async function gracefulShutdown(): Promise<void> {
   console.log('🛑 Initiating graceful shutdown...')
 
   try {
+    // Stop Recall submission service
+    recallSubmissionService.stop()
+
     await closeConnection()
     console.log('✅ Database connections closed')
     console.log('✅ Graceful shutdown complete')
@@ -98,9 +102,10 @@ async function startApplication(): Promise<void> {
     // Step 2: Initialize database
     await initializeDatabase()
 
-    // Step 3: Initialize EigenAI inference tracking (if using EigenAI)
+    // Step 3: Initialize EigenAI inference tracking and Recall submission (if using EigenAI)
     if (process.env.LLM_PROVIDER === 'eigenai') {
       initializeEigenAIInferenceTracking()
+      initializeRecallSubmission()
     }
 
     // Step 4: Set up signal handlers

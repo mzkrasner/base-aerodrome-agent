@@ -12,7 +12,7 @@ import {
   positions,
   swapTransactions,
 } from '../../../database/schema/trading/defs.js'
-import { performanceTracker } from '../../../services/performance-tracker.js'
+import { performanceTracker } from '../../../services/performance/performance-tracker.js'
 import { getPerformanceTool } from '../performance.tool.js'
 
 describe('getPerformanceTool', () => {

@@ -15,7 +15,7 @@ import { DEFAULT_TRADING_PAIRS, TRADING_CONFIG } from '../config/index.js'
 import { tradingDiaryRepo } from '../database/repositories/index.js'
 import type { DiaryEntryForContext } from '../database/schema/trading/types.js'
 import { getAllBalances } from '../execution/wallet.js'
-import { performanceTracker } from '../services/performance-tracker.js'
+import { performanceTracker } from '../services/performance/performance-tracker.js'
 
 /** DexScreener API response type */
 interface DexScreenerResponse {

@@ -274,6 +274,19 @@ This architecture ensures:
 - ✅ **Verifiable inference** - Only the final reasoning decision (from qwen) is signed and stored for Recall submission
 - ✅ **No infinite loops** - Automatic handoff after 8 tool calls prevents stuck agents
 
+#### Recall Integration (Badge Verification)
+
+When using EigenAI, verified signatures can be submitted to [Recall](https://recall.network) for badge status:
+
+```bash
+# Add to .env for Recall integration
+RECALL_API_URL=https://api.staging.competitions.recall.network
+RECALL_API_KEY=your-agent-api-key
+RECALL_COMPETITION_ID=your-competition-uuid
+```
+
+Signatures are automatically submitted every 15 minutes. See [docs/recall-integration.md](docs/recall-integration.md) for details.
+
 ## 📊 Supported Tokens
 
 ### DeFi Tokens

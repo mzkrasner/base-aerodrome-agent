@@ -67,3 +67,23 @@ export const API_CONFIG = {
   /** Base chain RPC URL (fallback if not in env) */
   defaultRpcUrl: 'https://mainnet.base.org',
 } as const
+
+/**
+ * Recall API configuration
+ *
+ * Used for submitting EigenAI verified signatures.
+ * Required environment variables:
+ * - RECALL_API_URL: Base URL for the Recall API (e.g., "https://api.recall.example.com")
+ * - RECALL_API_KEY: Agent API key for authentication
+ * - RECALL_COMPETITION_ID: Competition UUID the agent is participating in
+ */
+export const RECALL_CONFIG = {
+  /** Recall API base URL */
+  apiUrl: process.env.RECALL_API_URL ?? '',
+  /** Recall API key for agent authentication */
+  apiKey: process.env.RECALL_API_KEY ?? '',
+  /** Competition ID for signature submissions */
+  competitionId: process.env.RECALL_COMPETITION_ID ?? '',
+  /** Submission interval in milliseconds (15 minutes) */
+  submissionIntervalMs: 15 * 60 * 1000,
+} as const

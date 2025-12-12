@@ -27,7 +27,7 @@ import { ENV_CONFIG, TRADING_CONFIG } from '../../config/index.js'
 import { TOKEN_ADDRESSES, resolveToken, shouldUseStablePool } from '../../config/tokens.js'
 import { swapTransactionsRepo } from '../../database/repositories/index.js'
 import { approveToken, getProvider, getWallet, isWalletConfigured } from '../../execution/wallet.js'
-import { performanceTracker } from '../../services/performance-tracker.js'
+import { performanceTracker } from '../../services/performance/performance-tracker.js'
 
 /** Stablecoin tokens - don't track positions for these (they're ~$1, no P&L to track) */
 const STABLECOIN_TOKENS = ['USDC', 'USDbC', 'DAI']
