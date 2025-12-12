@@ -547,8 +547,13 @@ Respond ONLY with the JSON object, no additional text.`
       // Build verification data from qwen's response
       // This is the important inference - the actual trading decision
       if (data.signature && onVerification) {
+        // CRITICAL: Reconstruct fullPrompt as ALL message contents concatenated
+        // EigenAI signs: ChainID + ModelID + FullPrompt + FullOutput
+        // FullPrompt must include system prompt + user message, not just user message
+        const fullPrompt = qwenMessages.map((m) => m.content || '').join('')
+
         const verificationData: EigenAIVerificationData = {
-          requestPrompt: decisionPrompt, // The reasoning prompt we sent
+          requestPrompt: fullPrompt, // All message contents concatenated (system + user)
           responseModel: data.model || REASONING_MODEL,
           responseOutput: qwenContent,
           signature: data.signature,
