@@ -174,7 +174,12 @@ Includes:
 - Price velocity and candle analysis
 
 Use this to analyze market conditions before making trading decisions.
-Requires COINGECKO_API_KEY environment variable.`,
+Requires COINGECKO_API_KEY environment variable.
+
+VALID TOKENS (use EXACTLY these symbols):
+- Core: WETH, USDC, USDbC
+- DeFi: AERO, cbETH, cbBTC, WBTC, VIRTUAL, EIGEN
+- Meme: BRETT, DEGEN, TOSHI, MIGGLES, PONKE`,
 
   inputSchema: z.object({
     token: z.string().describe("Token symbol (e.g., 'AERO', 'WETH') or contract address"),

@@ -29,7 +29,12 @@ export const getWalletBalanceTool = createTool({
   id: 'get-wallet-balance',
   description: `Get current wallet balances for ETH and configured tokens.
 Returns raw balance data for portfolio assessment.
-Use this to check available funds before trading.`,
+Use this to check available funds before trading.
+
+VALID TOKENS (use EXACTLY these symbols):
+- Core: ETH, WETH, USDC, USDbC
+- DeFi: AERO, cbETH, cbBTC, WBTC, VIRTUAL, EIGEN
+- Meme: BRETT, DEGEN, TOSHI, MIGGLES, PONKE`,
 
   inputSchema: z.object({
     tokens: z

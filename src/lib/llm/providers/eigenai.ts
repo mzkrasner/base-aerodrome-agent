@@ -602,10 +602,23 @@ Required JSON format:
   ]
 }
 
-IMPORTANT for multi-hop routing:
-- If the token doesn't have a direct pool with USDC (e.g., meme coins like BRETT, PONKE), set "via": "WETH"
-- If the token has a direct USDC pool (e.g., WETH, AERO), set "via": null
-- WETH is the main hub token on Aerodrome - most tokens pair with it
+CRITICAL BALANCE CONSTRAINTS:
+- For BUY orders: amount_usd MUST NOT exceed your USDC balance from getWalletBalance
+- For SELL orders: amount MUST NOT exceed your token balance from getWalletBalance
+- If you have $3.68 USDC, you CANNOT buy $100 worth of anything - maximum is $3.68
+- ALWAYS check the wallet balance data before deciding trade amounts
+- If balance is too low for a meaningful trade, use action "HOLD"
+
+ROUTING (via parameter):
+- For the pairs you're analyzing (e.g., WETH/USDC, AERO/USDC, BRETT/WETH), direct pools EXIST
+- ALWAYS use "via": null for direct pairs - this is simpler and cheaper
+- Only set "via": "WETH" if you're trading a pair with NO direct pool (rare)
+- When in doubt, use "via": null - the system will find the best route
+
+VALID TOKENS (use EXACTLY these symbols):
+- Core: WETH, USDC, USDbC
+- DeFi: AERO, cbETH, cbBTC, WBTC, VIRTUAL, EIGEN
+- Meme: BRETT, DEGEN, TOSHI, MIGGLES, PONKE
 
 If no clear opportunity exists, use action "HOLD" for all positions.
 Your response must start with { and end with } - no other text allowed.`

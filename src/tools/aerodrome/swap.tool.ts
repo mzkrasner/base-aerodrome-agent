@@ -87,6 +87,11 @@ Only call this when you have decided to trade AND you are confident.
 Requires wallet to be configured with AGENT_PRIVATE_KEY.
 NOTE: Trades are blocked in DRY_RUN mode - the tool will return an error instead of executing.
 
+VALID TOKENS (use EXACTLY these symbols):
+- Core: WETH, USDC, USDbC, DAI
+- DeFi: AERO, cbETH, cbBTC, WBTC, VIRTUAL, EIGEN
+- Meme: BRETT, DEGEN, TOSHI, MIGGLES, PONKE
+
 Supports multi-hop routing with the optional 'via' parameter:
 - Direct: executeSwap({ tokenIn: "USDC", tokenOut: "WETH", amountIn: "10", minAmountOut: "0.003" })
 - Multi-hop: executeSwap({ tokenIn: "USDC", tokenOut: "BRETT", via: "WETH", amountIn: "10", minAmountOut: "1000" })

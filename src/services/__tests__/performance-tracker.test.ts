@@ -306,6 +306,211 @@ describe('PerformanceTracker', () => {
       expect(summary).toContain('Total P&L:')
       expect(summary).toContain('Trading Stats:')
     })
+
+    it('should use actualWalletValue when provided', async () => {
+      // Create a snapshot with low value
+      await performanceTracker.createSnapshot({ AERO: '100' }, 50, 1)
+
+      const mockGetPrice = async () => 0.8
+
+      // Pass actual wallet value of $100 (overriding the position-based calculation of $0)
+      const summary = await performanceTracker.getPerformanceSummary(mockGetPrice, 100)
+
+      expect(summary).toContain('Value: $100.00')
+    })
+
+    it('should include position breakdown when walletBalances provided', async () => {
+      const mockGetPrice = async (token: string) => {
+        if (token === 'AERO') return 0.65
+        if (token === 'USDC') return 1.0
+        return 0
+      }
+
+      const walletBalances = { AERO: '100', USDC: '50' }
+      const summary = await performanceTracker.getPerformanceSummary(
+        mockGetPrice,
+        115,
+        walletBalances
+      )
+
+      expect(summary).toContain('Current Holdings:')
+      expect(summary).toContain('AERO:')
+      expect(summary).toContain('USDC:')
+    })
+
+    it('should show P&L for positions with cost basis', async () => {
+      // Buy AERO at $0.50 cost basis
+      await performanceTracker.recordBuy(
+        'AERO',
+        '0x940181a94A35A4569E4529A3CDfB74e38FD98631',
+        100, // 100 AERO
+        50 // $50 total cost = $0.50 per token
+      )
+
+      // Current price is $0.65 = 30% gain
+      const mockGetPrice = async () => 0.65
+
+      const walletBalances = { AERO: '100' }
+      const summary = await performanceTracker.getPerformanceSummary(
+        mockGetPrice,
+        65,
+        walletBalances
+      )
+
+      expect(summary).toContain('Current Holdings:')
+      expect(summary).toContain('AERO:')
+      expect(summary).toContain('P&L:') // Should show P&L since we have cost basis
+      expect(summary).toContain('+$15.00') // $65 - $50 = $15 profit
+      expect(summary).toContain('+30.0%') // 30% gain
+    })
+
+    it('should NOT show P&L for positions without cost basis', async () => {
+      // No recordBuy - just wallet balance with no tracked cost basis
+      const mockGetPrice = async () => 0.65
+
+      const walletBalances = { WETH: '1.5' } // Wallet has WETH but we never bought through agent
+      const summary = await performanceTracker.getPerformanceSummary(
+        mockGetPrice,
+        100,
+        walletBalances
+      )
+
+      expect(summary).toContain('Current Holdings:')
+      expect(summary).toContain('WETH:')
+      // Should NOT contain P&L since no cost basis
+      const wethLine = summary.split('\n').find((l) => l.includes('WETH:'))
+      expect(wethLine).not.toContain('P&L:')
+    })
+
+    it('should handle mixed positions (some with cost basis, some without)', async () => {
+      // Buy AERO - we have cost basis
+      await performanceTracker.recordBuy(
+        'AERO',
+        '0x940181a94A35A4569E4529A3CDfB74e38FD98631',
+        100,
+        50
+      )
+
+      const mockGetPrice = async (token: string) => {
+        if (token === 'AERO') return 0.65
+        if (token === 'USDC') return 1.0
+        return 0
+      }
+
+      // Wallet has AERO (tracked) and USDC (not tracked)
+      const walletBalances = { AERO: '100', USDC: '50' }
+      const summary = await performanceTracker.getPerformanceSummary(
+        mockGetPrice,
+        115,
+        walletBalances
+      )
+
+      // AERO should have P&L
+      const aeroLine = summary.split('\n').find((l) => l.includes('AERO:'))
+      expect(aeroLine).toContain('P&L:')
+
+      // USDC should NOT have P&L (no cost basis)
+      const usdcLine = summary.split('\n').find((l) => l.includes('USDC:'))
+      expect(usdcLine).not.toContain('P&L:')
+    })
+  })
+
+  describe('Balance Updates on Buy/Sell', () => {
+    it('should correctly update balance after buy', async () => {
+      const pos1 = await performanceTracker.recordBuy(
+        'AERO',
+        '0x940181a94A35A4569E4529A3CDfB74e38FD98631',
+        100,
+        65
+      )
+      expect(parseFloat(pos1.balance)).toBe(100)
+      expect(parseFloat(pos1.totalCostUsd)).toBe(65)
+
+      const pos2 = await performanceTracker.recordBuy(
+        'AERO',
+        '0x940181a94A35A4569E4529A3CDfB74e38FD98631',
+        50,
+        40
+      )
+      expect(parseFloat(pos2.balance)).toBe(150) // 100 + 50
+      expect(parseFloat(pos2.totalCostUsd)).toBe(105) // 65 + 40
+    })
+
+    it('should correctly update balance after sell', async () => {
+      await performanceTracker.recordBuy(
+        'AERO',
+        '0x940181a94A35A4569E4529A3CDfB74e38FD98631',
+        100,
+        65
+      )
+
+      const result = await performanceTracker.recordSell('AERO', 30, 25)
+      expect(result).not.toBeNull()
+
+      const { position } = result!
+      expect(parseFloat(position.balance)).toBe(70) // 100 - 30
+      // Cost basis reduced proportionally: 65 * (70/100) = 45.5
+      expect(parseFloat(position.totalCostUsd)).toBeCloseTo(45.5, 1)
+    })
+
+    it('should track realized P&L correctly across multiple sells', async () => {
+      // Buy 100 AERO at $0.50 each = $50 total
+      await performanceTracker.recordBuy(
+        'AERO',
+        '0x940181a94A35A4569E4529A3CDfB74e38FD98631',
+        100,
+        50
+      )
+
+      // Sell 50 at $0.70 each = $35 proceeds, cost basis was $25, P&L = +$10
+      const sell1 = await performanceTracker.recordSell('AERO', 50, 35)
+      expect(sell1!.realizedPnl).toBeCloseTo(10, 1)
+
+      // Sell remaining 50 at $0.40 each = $20 proceeds, cost basis was $25, P&L = -$5
+      const sell2 = await performanceTracker.recordSell('AERO', 50, 20)
+      expect(sell2!.realizedPnl).toBeCloseTo(-5, 1)
+
+      // Total realized P&L should be $5 (10 - 5)
+      expect(parseFloat(sell2!.position.realizedPnlUsd)).toBeCloseTo(5, 1)
+    })
+  })
+
+  describe('Portfolio Snapshot Integration', () => {
+    it('should use first snapshot as starting value for P&L', async () => {
+      // First snapshot: $100
+      await performanceTracker.createSnapshot({ USDC: '100' }, 100, 1)
+
+      // Second snapshot: $120
+      await performanceTracker.createSnapshot({ USDC: '120' }, 120, 2)
+
+      const mockGetPrice = async () => 1.0
+      const metrics = await performanceTracker.getPerformanceMetrics(mockGetPrice, 24 * 30, 120)
+
+      expect(metrics.startingValueUsd).toBe(100)
+      expect(metrics.currentValueUsd).toBe(120)
+      expect(metrics.totalPnlUsd).toBe(20) // 120 - 100
+      expect(metrics.totalPnlPercent).toBeCloseTo(20, 1) // 20%
+    })
+
+    it('should calculate correct unrealized P&L from positions', async () => {
+      // Buy 100 AERO at $0.50 = $50 cost
+      await performanceTracker.recordBuy(
+        'AERO',
+        '0x940181a94A35A4569E4529A3CDfB74e38FD98631',
+        100,
+        50
+      )
+
+      // Create snapshot
+      await performanceTracker.createSnapshot({ AERO: '100' }, 50, 1)
+
+      // Current price is $0.80 = 100 * 0.80 = $80 value
+      const mockGetPrice = async () => 0.8
+      const metrics = await performanceTracker.getPerformanceMetrics(mockGetPrice)
+
+      // Unrealized P&L = current value - cost basis = $80 - $50 = $30
+      expect(metrics.unrealizedPnlUsd).toBe(30)
+    })
   })
 
   describe('Edge Cases', () => {

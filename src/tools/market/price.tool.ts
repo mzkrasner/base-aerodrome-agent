@@ -98,7 +98,12 @@ export const getTokenPriceTool = createTool({
   id: 'get-token-price',
   description: `Get current token price and market data from DexScreener.
 Returns raw price, volume, and liquidity data.
-Use this to check current token prices.`,
+Use this to check current token prices.
+
+VALID TOKENS (use EXACTLY these symbols):
+- Core: WETH, USDC, USDbC
+- DeFi: AERO, cbETH, cbBTC, WBTC, VIRTUAL, EIGEN
+- Meme: BRETT, DEGEN, TOSHI, MIGGLES, PONKE`,
 
   inputSchema: z.object({
     token: z.string().describe("Token symbol (e.g., 'AERO', 'WETH') or address"),

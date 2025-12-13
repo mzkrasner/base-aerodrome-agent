@@ -25,7 +25,12 @@ export const getPoolMetricsTool = createTool({
   id: 'aerodrome-pool-metrics',
   description: `Get raw liquidity pool data from Aerodrome DEX.
 Returns reserves (V2) or liquidity metrics (Slipstream CL pools).
-Use this to assess pool depth before trading.`,
+Use this to assess pool depth before trading.
+
+VALID TOKENS (use EXACTLY these symbols):
+- Core: WETH, USDC, USDbC, DAI
+- DeFi: AERO, cbETH, cbBTC, WBTC, VIRTUAL, EIGEN
+- Meme: BRETT, DEGEN, TOSHI, MIGGLES, PONKE`,
 
   inputSchema: z.object({
     tokenA: z.string().describe("First token symbol (e.g., 'WETH') or address"),

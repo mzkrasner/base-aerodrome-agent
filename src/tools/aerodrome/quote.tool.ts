@@ -100,6 +100,11 @@ export const getQuoteTool = createTool({
 Returns expected output amount and route information.
 Use this to check swap prices before executing trades.
 
+VALID TOKENS (use EXACTLY these symbols):
+- Core: WETH, USDC, USDbC, DAI
+- DeFi: AERO, cbETH, cbBTC, WBTC, VIRTUAL, EIGEN
+- Meme: BRETT, DEGEN, TOSHI, MIGGLES, PONKE
+
 Supports multi-hop routing with the optional 'via' parameter:
 - Direct: getQuote({ tokenIn: "USDC", tokenOut: "WETH", amountIn: "10" })
 - Multi-hop: getQuote({ tokenIn: "USDC", tokenOut: "BRETT", amountIn: "10", via: "WETH" })

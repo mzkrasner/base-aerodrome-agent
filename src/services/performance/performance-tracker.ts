@@ -307,18 +307,23 @@ export class PerformanceTracker {
 
   /**
    * Calculate comprehensive performance metrics
+   * @param getCurrentPrice Function to get current token price
+   * @param hoursBack Number of hours to look back for trade stats
+   * @param actualWalletValue Optional: actual current wallet value (overrides position-based calculation)
    */
   async getPerformanceMetrics(
     getCurrentPrice: (token: string) => Promise<number>,
-    hoursBack: number = 24 * 30 // Default: 30 days
+    hoursBack: number = 24 * 30, // Default: 30 days
+    actualWalletValue?: number
   ): Promise<PerformanceMetrics> {
     const cutoffTime = new Date(Date.now() - hoursBack * 60 * 60 * 1000)
 
     // Get all positions with values
     const positionsWithValues = await this.getPositionsWithValues(getCurrentPrice)
 
-    // Calculate current portfolio value
-    const currentValueUsd = positionsWithValues.reduce((sum, pos) => sum + pos.currentValueUsd, 0)
+    // Use actual wallet value if provided, otherwise calculate from tracked positions
+    const currentValueUsd =
+      actualWalletValue ?? positionsWithValues.reduce((sum, pos) => sum + pos.currentValueUsd, 0)
 
     // Get first snapshot for starting value
     const firstSnapshot = await this.getFirstSnapshot()
@@ -327,7 +332,7 @@ export class PerformanceTracker {
       ? parseFloat(firstSnapshot.totalValueUsd || '0')
       : currentValueUsd
 
-    // Calculate P&L
+    // Calculate P&L from positions (for breakdown)
     const realizedPnlUsd = positionsWithValues.reduce(
       (sum, pos) => sum + parseFloat(pos.realizedPnlUsd),
       0
@@ -335,7 +340,9 @@ export class PerformanceTracker {
 
     const unrealizedPnlUsd = positionsWithValues.reduce((sum, pos) => sum + pos.unrealizedPnlUsd, 0)
 
-    const totalPnlUsd = realizedPnlUsd + unrealizedPnlUsd
+    // Total P&L: use actual value change (current - starting) when we have wallet data
+    // This catches all P&L including tokens not tracked as positions
+    const totalPnlUsd = currentValueUsd - startingValueUsd
     const totalPnlPercent = startingValueUsd > 0 ? (totalPnlUsd / startingValueUsd) * 100 : 0
 
     // Get trade statistics from swap transactions
@@ -399,11 +406,16 @@ export class PerformanceTracker {
 
   /**
    * Get a summary string for the agent
+   * @param getCurrentPrice Function to get current token price
+   * @param actualWalletValue Optional: actual current wallet value (overrides position-based calculation)
+   * @param walletBalances Optional: actual wallet balances for position breakdown
    */
   async getPerformanceSummary(
-    getCurrentPrice: (token: string) => Promise<number>
+    getCurrentPrice: (token: string) => Promise<number>,
+    actualWalletValue?: number,
+    walletBalances?: Record<string, string>
   ): Promise<string> {
-    const metrics = await this.getPerformanceMetrics(getCurrentPrice)
+    const metrics = await this.getPerformanceMetrics(getCurrentPrice, 24 * 30, actualWalletValue)
 
     const lines = [
       `📊 Portfolio Performance Summary`,
@@ -412,16 +424,52 @@ export class PerformanceTracker {
       `📈 Total P&L: $${metrics.totalPnlUsd.toFixed(2)} (${metrics.totalPnlPercent >= 0 ? '+' : ''}${metrics.totalPnlPercent.toFixed(2)}%)`,
       `   - Realized: $${metrics.realizedPnlUsd.toFixed(2)}`,
       `   - Unrealized: $${metrics.unrealizedPnlUsd.toFixed(2)}`,
-      ``,
-      `📊 Trading Stats:`,
-      `   - Total trades: ${metrics.totalTrades}`,
-      `   - Win rate: ${metrics.winRate.toFixed(1)}% (${metrics.winningTrades}W / ${metrics.losingTrades}L)`,
-      `   - Avg trade: $${metrics.avgTradeSizeUsd.toFixed(2)}`,
-      `   - Best: $${metrics.bestTradeUsd.toFixed(2)} | Worst: $${metrics.worstTradeUsd.toFixed(2)}`,
-      `   - Gas spent: $${metrics.totalGasSpentUsd.toFixed(2)}`,
-      ``,
-      `⏱️ Active for ${metrics.timeframe.daysActive} days`,
     ]
+
+    // Add position-level breakdown if wallet balances provided
+    if (walletBalances && Object.keys(walletBalances).length > 0) {
+      lines.push(``)
+      lines.push(`📦 Current Holdings:`)
+
+      // Get tracked positions for cost basis info
+      const trackedPositions = await this.getAllPositions()
+      const positionMap = new Map(trackedPositions.map((p) => [p.token.toUpperCase(), p]))
+
+      for (const [token, balanceStr] of Object.entries(walletBalances)) {
+        const balance = parseFloat(balanceStr)
+        if (balance <= 0) continue
+
+        const price = await getCurrentPrice(token)
+        const value = balance * price
+        const trackedPos = positionMap.get(token.toUpperCase())
+
+        let posLine = `   ${token}: ${balance.toFixed(4)} × $${price.toFixed(4)} = $${value.toFixed(2)}`
+
+        // Add P&L info if we have cost basis from tracked position
+        if (trackedPos && parseFloat(trackedPos.totalCostUsd) > 0) {
+          const costBasis = parseFloat(trackedPos.totalCostUsd)
+          const pnl = value - costBasis
+          const pnlPercent = costBasis > 0 ? (pnl / costBasis) * 100 : 0
+          posLine += ` | P&L: ${pnl >= 0 ? '+' : ''}$${pnl.toFixed(2)} (${pnlPercent >= 0 ? '+' : ''}${pnlPercent.toFixed(1)}%)`
+        }
+
+        lines.push(posLine)
+      }
+    }
+
+    lines.push(``)
+    lines.push(`📊 Trading Stats:`)
+    lines.push(`   - Total trades: ${metrics.totalTrades}`)
+    lines.push(
+      `   - Win rate: ${metrics.winRate.toFixed(1)}% (${metrics.winningTrades}W / ${metrics.losingTrades}L)`
+    )
+    lines.push(`   - Avg trade: $${metrics.avgTradeSizeUsd.toFixed(2)}`)
+    lines.push(
+      `   - Best: $${metrics.bestTradeUsd.toFixed(2)} | Worst: $${metrics.worstTradeUsd.toFixed(2)}`
+    )
+    lines.push(`   - Gas spent: $${metrics.totalGasSpentUsd.toFixed(2)}`)
+    lines.push(``)
+    lines.push(`⏱️ Active for ${metrics.timeframe.daysActive} days`)
 
     return lines.join('\n')
   }

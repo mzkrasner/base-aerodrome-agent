@@ -82,11 +82,18 @@ async function fetchTokenPriceUsd(tokenAddress: string): Promise<number> {
   }
 }
 
+/** Result from portfolio snapshot */
+interface SnapshotResult {
+  totalValueUsd: number
+  balances: Record<string, string>
+}
+
 /**
  * Take a portfolio snapshot at the start of each iteration
  * Records current balances and total value for performance tracking
+ * @returns The total portfolio value in USD and wallet balances
  */
-async function takePortfolioSnapshot(iterationNumber: number): Promise<void> {
+async function takePortfolioSnapshot(iterationNumber: number): Promise<SnapshotResult> {
   try {
     const tokenBalances = await getAllBalances()
 
@@ -112,8 +119,10 @@ async function takePortfolioSnapshot(iterationNumber: number): Promise<void> {
 
     await performanceTracker.createSnapshot(balanceRecord, totalValueUsd, iterationNumber)
     console.log(`📸 Portfolio snapshot: $${totalValueUsd.toFixed(2)} total value`)
+    return { totalValueUsd, balances: balanceRecord }
   } catch (error) {
     console.error('Failed to take portfolio snapshot:', error)
+    return { totalValueUsd: 0, balances: {} }
   }
 }
 
@@ -126,6 +135,7 @@ interface TradingContext {
   timestamp: string
   iterationNumber: number
   recentHistory: DiaryEntryForContext[]
+  performanceSummary: string
 }
 
 /**
@@ -170,6 +180,9 @@ Analyze ${ctx.targetToken}/${ctx.baseToken} on Aerodrome DEX.
 
 Current time: ${ctx.timestamp}
 Iteration: #${ctx.iterationNumber}
+
+## Portfolio Performance
+${ctx.performanceSummary}
 
 ## Recent Trading History
 ${historyContext}
@@ -338,12 +351,20 @@ export async function startTradingLoop(): Promise<void> {
     console.log(`📈 Trading Iteration #${iterationNumber}`)
     console.log(`${'='.repeat(60)}`)
 
-    // Take portfolio snapshot for performance tracking
-    await takePortfolioSnapshot(iterationNumber)
+    // Take portfolio snapshot for performance tracking (returns actual wallet value and balances)
+    const { totalValueUsd, balances } = await takePortfolioSnapshot(iterationNumber)
 
     // Get recent history for context (last 20 decisions)
     const recentHistory = await tradingDiaryRepo.getRecentEntries(20)
     console.log(`📚 Loaded ${recentHistory.length} recent decisions for context`)
+
+    // Get performance summary for context (pass actual wallet value and balances for accurate data)
+    const performanceSummary = await performanceTracker.getPerformanceSummary(
+      fetchTokenPriceUsd,
+      totalValueUsd,
+      balances
+    )
+    console.log(`📊 Performance: ${performanceSummary.split('\n')[0]}`)
 
     for (const pair of tradingPairs) {
       // Get pair-specific history
@@ -355,6 +376,7 @@ export async function startTradingLoop(): Promise<void> {
         timestamp,
         iterationNumber,
         recentHistory: pairHistory.length > 0 ? pairHistory : recentHistory,
+        performanceSummary,
       })
 
       // Small delay between pairs to avoid rate limits
@@ -377,12 +399,20 @@ export async function startTradingLoop(): Promise<void> {
  */
 export async function runSingleIteration(targetToken: string, baseToken: string): Promise<void> {
   const recentHistory = await tradingDiaryRepo.getRecentEntriesForPair(baseToken, targetToken, 10)
+  const iterationNumber = (await tradingDiaryRepo.getCurrentIterationNumber()) + 1
+  const { totalValueUsd, balances } = await takePortfolioSnapshot(iterationNumber)
+  const performanceSummary = await performanceTracker.getPerformanceSummary(
+    fetchTokenPriceUsd,
+    totalValueUsd,
+    balances
+  )
 
   await runTradingIteration({
     targetToken,
     baseToken,
     timestamp: new Date().toISOString(),
-    iterationNumber: (await tradingDiaryRepo.getCurrentIterationNumber()) + 1,
+    iterationNumber,
     recentHistory,
+    performanceSummary,
   })
 }
