@@ -9,6 +9,9 @@
  * Pattern from aerodrome-mastra-implementation-guide.md:
  * > Don't build a workflow that calls tools in sequence.
  * > Build an agent that reasons about which tools it needs.
+ *
+ * When LLM_PROVIDER=eigenai, uses a deterministic flow that calls
+ * tools programmatically and only uses Qwen for reasoning.
  */
 import { aerodromeAgent } from '../agents/trading.agent.js'
 import { TRADING_CONFIG, getTradingPairs } from '../config/index.js'
@@ -16,6 +19,10 @@ import { tradingDiaryRepo } from '../database/repositories/index.js'
 import type { DiaryEntryForContext } from '../database/schema/trading/types.js'
 import { getAllBalances } from '../execution/wallet.js'
 import { performanceTracker } from '../services/performance/performance-tracker.js'
+import { runEigenDeterministicIteration } from './eigen-deterministic.js'
+
+/** Check if we're using EigenAI provider */
+const isEigenAI = process.env.LLM_PROVIDER === 'eigenai'
 
 /** DexScreener API response type */
 interface DexScreenerResponse {
@@ -369,15 +376,30 @@ export async function startTradingLoop(): Promise<void> {
     for (const pair of tradingPairs) {
       // Get pair-specific history
       const pairHistory = await tradingDiaryRepo.getRecentEntriesForPair(pair.base, pair.quote, 10)
+      const history = pairHistory.length > 0 ? pairHistory : recentHistory
 
-      await runTradingIteration({
-        targetToken: pair.quote,
-        baseToken: pair.base,
-        timestamp,
-        iterationNumber,
-        recentHistory: pairHistory.length > 0 ? pairHistory : recentHistory,
-        performanceSummary,
-      })
+      // Branch based on LLM provider
+      if (isEigenAI) {
+        // Use deterministic flow for EigenAI
+        await runEigenDeterministicIteration({
+          targetToken: pair.quote,
+          baseToken: pair.base,
+          timestamp,
+          iterationNumber,
+          recentHistory: history,
+          performanceSummary,
+        })
+      } else {
+        // Use agent flow for other providers
+        await runTradingIteration({
+          targetToken: pair.quote,
+          baseToken: pair.base,
+          timestamp,
+          iterationNumber,
+          recentHistory: history,
+          performanceSummary,
+        })
+      }
 
       // Small delay between pairs to avoid rate limits
       await new Promise((resolve) => setTimeout(resolve, 2000))
@@ -407,12 +429,19 @@ export async function runSingleIteration(targetToken: string, baseToken: string)
     balances
   )
 
-  await runTradingIteration({
+  const context = {
     targetToken,
     baseToken,
     timestamp: new Date().toISOString(),
     iterationNumber,
     recentHistory,
     performanceSummary,
-  })
+  }
+
+  // Branch based on LLM provider
+  if (isEigenAI) {
+    await runEigenDeterministicIteration(context)
+  } else {
+    await runTradingIteration(context)
+  }
 }

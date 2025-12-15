@@ -4,7 +4,7 @@
  * Saves verification data from EigenAI inference calls to the database.
  * This data can later be batch-submitted to the Recall API for verification.
  */
-import { eq, inArray } from 'drizzle-orm'
+import { desc, eq, inArray } from 'drizzle-orm'
 
 import { db } from '../../database/db.js'
 import { eigenaiInferences } from '../../database/schema/index.js'
@@ -62,7 +62,7 @@ export class EigenAIInferenceTracker {
       .select()
       .from(eigenaiInferences)
       .where(eq(eigenaiInferences.submittedToRecall, false))
-      .orderBy(eigenaiInferences.inferredAt)
+      .orderBy(desc(eigenaiInferences.inferredAt))
       .limit(1)
     return result ?? null
   }

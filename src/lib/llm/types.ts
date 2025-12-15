@@ -188,3 +188,30 @@ export type EigenAIErrorCode =
   | 'invalid_signature'
   | 'rate_limited'
   | 'unknown'
+
+/**
+ * Individual trade decision from Qwen
+ */
+export interface QwenSingleTradeDecision {
+  /** Token symbol to trade */
+  token: string
+  /** Action to take */
+  action: 'BUY' | 'SELL' | 'HOLD'
+  /** USD amount for BUY orders */
+  amount_usd: number
+  /** Intermediate token for multi-hop routing (null for direct) */
+  via: string | null
+  /** Brief rationale for this specific decision */
+  rationale: string
+}
+
+/**
+ * Parsed trading decision from Qwen reasoning model.
+ * Used by both the deterministic flow and the two-model architecture.
+ */
+export interface QwenTradeDecision {
+  /** Qwen's analysis and reasoning */
+  reasoning: string
+  /** Array of trade decisions (typically one per iteration) */
+  trade_decisions: QwenSingleTradeDecision[]
+}
