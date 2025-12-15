@@ -231,3 +231,50 @@ export const DEFAULT_TRADING_PAIRS = [
   { base: 'WETH', quote: 'DEGEN' },
   { base: 'WETH', quote: 'TOSHI' },
 ] as const
+
+/**
+ * Extract unique token symbols from a list of trading pairs
+ * Uses canonical symbol from TOKEN_METADATA when available
+ *
+ * @param pairs - Array of trading pairs with quote and base tokens
+ * @returns Array of unique token symbols (in canonical case)
+ */
+export function getUniqueTokensFromPairs(
+  pairs: ReadonlyArray<{ quote: string; base: string }>
+): string[] {
+  const tokenSet = new Set<string>()
+  for (const pair of pairs) {
+    // Look up canonical symbol from metadata, fallback to uppercase
+    const quoteMeta = resolveToken(pair.quote)
+    const baseMeta = resolveToken(pair.base)
+    tokenSet.add(quoteMeta?.symbol ?? pair.quote.toUpperCase())
+    tokenSet.add(baseMeta?.symbol ?? pair.base.toUpperCase())
+  }
+  return Array.from(tokenSet).sort()
+}
+
+/**
+ * Generate a formatted string of valid tokens for use in prompts
+ *
+ * @param pairs - Array of trading pairs (defaults to DEFAULT_TRADING_PAIRS)
+ * @returns Formatted string like "AERO, BRETT, USDC, WETH"
+ */
+export function getValidTokensString(
+  pairs: ReadonlyArray<{ quote: string; base: string }> = DEFAULT_TRADING_PAIRS
+): string {
+  const tokens = getUniqueTokensFromPairs(pairs)
+  return tokens.join(', ')
+}
+
+/**
+ * Generate the VALID TOKENS prompt section for system prompts and tool descriptions
+ *
+ * @param pairs - Array of trading pairs (defaults to DEFAULT_TRADING_PAIRS)
+ * @returns Formatted prompt section
+ */
+export function getValidTokensPrompt(
+  pairs: ReadonlyArray<{ quote: string; base: string }> = DEFAULT_TRADING_PAIRS
+): string {
+  const tokens = getUniqueTokensFromPairs(pairs)
+  return `VALID TOKENS (use EXACTLY these symbols): ${tokens.join(', ')}`
+}

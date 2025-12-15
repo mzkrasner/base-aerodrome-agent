@@ -20,6 +20,8 @@ import '../env.js'
 
 import { Agent } from '@mastra/core/agent'
 
+import { getTradingPairs } from '../config/index.js'
+import { getValidTokensPrompt } from '../config/tokens.js'
 import { getModel } from '../lib/llm/index.js'
 import {
   executeSwapTool,
@@ -33,6 +35,19 @@ import {
 } from '../tools/index.js'
 
 /**
+ * Get valid tokens section for system prompt
+ * Dynamically generated from configured trading pairs
+ */
+function getValidTokensSection(): string {
+  const pairs = getTradingPairs()
+  const tokensPrompt = getValidTokensPrompt(pairs)
+  return `## ${tokensPrompt}
+
+⚠️ NEVER use any other token symbols. Do NOT hallucinate tokens like "WUSDC", "ARO", "USUSDC", etc.
+Token symbols are CASE-SENSITIVE and must match EXACTLY.`
+}
+
+/**
  * System prompt with glossary - explains what data means, doesn't tell agent what to do
  */
 const SYSTEM_PROMPT = `You are an autonomous trading agent managing a live portfolio on Aerodrome DEX (Base chain).
@@ -43,13 +58,7 @@ const SYSTEM_PROMPT = `You are an autonomous trading agent managing a live portf
 - When signals align clearly, ACT DECISIVELY with conviction. When signals are mixed, staying flat is fine.
 - Size positions according to conviction level - higher conviction = larger position.
 
-## VALID TOKENS (CRITICAL - use EXACTLY these symbols)
-- Core: WETH, USDC, USDbC, DAI
-- DeFi: AERO, cbETH, cbBTC, WBTC, VIRTUAL, EIGEN
-- Meme: BRETT, DEGEN, TOSHI, MIGGLES, PONKE
-
-⚠️ NEVER use any other token symbols. Do NOT hallucinate tokens like "WUSDC", "ARO", "USUSDC", etc.
-Token symbols are CASE-SENSITIVE and must match EXACTLY.
+${getValidTokensSection()}
 
 ## Your Tools
 You have tools to gather data. Call them as needed:

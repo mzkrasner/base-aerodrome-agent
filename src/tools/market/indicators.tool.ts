@@ -8,7 +8,8 @@
 import { createTool } from '@mastra/core/tools'
 import { z } from 'zod'
 
-import { resolveToken } from '../../config/tokens.js'
+import { getTradingPairs } from '../../config/index.js'
+import { getValidTokensPrompt, resolveToken } from '../../config/tokens.js'
 import { type CandleData, fetchMultiTimeframeCandles } from './coingecko-client.js'
 import { type TechnicalIndicators, calculateIndicators, getIndicatorSeries } from './indicators.js'
 import { type MarketMetrics, calculateMarketMetrics } from './market-metrics.js'
@@ -176,10 +177,7 @@ Includes:
 Use this to analyze market conditions before making trading decisions.
 Requires COINGECKO_API_KEY environment variable.
 
-VALID TOKENS (use EXACTLY these symbols):
-- Core: WETH, USDC, USDbC
-- DeFi: AERO, cbETH, cbBTC, WBTC, VIRTUAL, EIGEN
-- Meme: BRETT, DEGEN, TOSHI, MIGGLES, PONKE`,
+${getValidTokensPrompt(getTradingPairs())}`,
 
   inputSchema: z.object({
     token: z.string().describe("Token symbol (e.g., 'AERO', 'WETH') or contract address"),

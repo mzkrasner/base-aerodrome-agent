@@ -6,7 +6,8 @@
 import { createTool } from '@mastra/core/tools'
 import { z } from 'zod'
 
-import { type TokenSymbol, resolveToken } from '../../config/tokens.js'
+import { getTradingPairs } from '../../config/index.js'
+import { type TokenSymbol, getValidTokensPrompt, resolveToken } from '../../config/tokens.js'
 import {
   getBatchTokenBalances,
   getEthBalance,
@@ -31,10 +32,7 @@ export const getWalletBalanceTool = createTool({
 Returns raw balance data for portfolio assessment.
 Use this to check available funds before trading.
 
-VALID TOKENS (use EXACTLY these symbols):
-- Core: ETH, WETH, USDC, USDbC
-- DeFi: AERO, cbETH, cbBTC, WBTC, VIRTUAL, EIGEN
-- Meme: BRETT, DEGEN, TOSHI, MIGGLES, PONKE`,
+${getValidTokensPrompt(getTradingPairs())}`,
 
   inputSchema: z.object({
     tokens: z

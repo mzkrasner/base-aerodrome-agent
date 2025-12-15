@@ -22,6 +22,8 @@ import type {
 import { APICallError } from 'ai'
 import { privateKeyToAccount } from 'viem/accounts'
 
+import { getTradingPairs } from '../../../config/index.js'
+import { getValidTokensPrompt } from '../../../config/tokens.js'
 import { executeSwapTool, getQuoteTool } from '../../../tools/index.js'
 import {
   DEFAULT_MODELS,
@@ -615,10 +617,7 @@ ROUTING (via parameter):
 - Only set "via": "WETH" if you're trading a pair with NO direct pool (rare)
 - When in doubt, use "via": null - the system will find the best route
 
-VALID TOKENS (use EXACTLY these symbols):
-- Core: WETH, USDC, USDbC
-- DeFi: AERO, cbETH, cbBTC, WBTC, VIRTUAL, EIGEN
-- Meme: BRETT, DEGEN, TOSHI, MIGGLES, PONKE
+${getValidTokensPrompt(getTradingPairs())}
 
 If no clear opportunity exists, use action "HOLD" for all positions.
 Your response must start with { and end with } - no other text allowed.`

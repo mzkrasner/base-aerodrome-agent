@@ -6,7 +6,8 @@
 import { createTool } from '@mastra/core/tools'
 import { z } from 'zod'
 
-import { resolveToken } from '../../config/tokens.js'
+import { getTradingPairs } from '../../config/index.js'
+import { getValidTokensPrompt, resolveToken } from '../../config/tokens.js'
 
 /**
  * Fetch token data from DexScreener API
@@ -100,10 +101,7 @@ export const getTokenPriceTool = createTool({
 Returns raw price, volume, and liquidity data.
 Use this to check current token prices.
 
-VALID TOKENS (use EXACTLY these symbols):
-- Core: WETH, USDC, USDbC
-- DeFi: AERO, cbETH, cbBTC, WBTC, VIRTUAL, EIGEN
-- Meme: BRETT, DEGEN, TOSHI, MIGGLES, PONKE`,
+${getValidTokensPrompt(getTradingPairs())}`,
 
   inputSchema: z.object({
     token: z.string().describe("Token symbol (e.g., 'AERO', 'WETH') or address"),

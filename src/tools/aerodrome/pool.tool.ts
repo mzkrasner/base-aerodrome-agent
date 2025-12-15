@@ -16,9 +16,10 @@ import { ethers } from 'ethers'
 import { z } from 'zod'
 
 import { AERODROME_POOL_ABI, SLIPSTREAM_POOL_ABI } from '../../config/contracts.js'
+import { getTradingPairs } from '../../config/index.js'
 import { type DiscoveredPool, discoverBestPool } from '../../config/pool-discovery.js'
 import type { PoolType } from '../../config/pools.js'
-import { resolveToken } from '../../config/tokens.js'
+import { getValidTokensPrompt, resolveToken } from '../../config/tokens.js'
 import { getProvider } from '../../execution/wallet.js'
 
 export const getPoolMetricsTool = createTool({
@@ -27,10 +28,7 @@ export const getPoolMetricsTool = createTool({
 Returns reserves (V2) or liquidity metrics (Slipstream CL pools).
 Use this to assess pool depth before trading.
 
-VALID TOKENS (use EXACTLY these symbols):
-- Core: WETH, USDC, USDbC, DAI
-- DeFi: AERO, cbETH, cbBTC, WBTC, VIRTUAL, EIGEN
-- Meme: BRETT, DEGEN, TOSHI, MIGGLES, PONKE`,
+${getValidTokensPrompt(getTradingPairs())}`,
 
   inputSchema: z.object({
     tokenA: z.string().describe("First token symbol (e.g., 'WETH') or address"),

@@ -26,9 +26,10 @@ import {
   SLIPSTREAM_POOL_ABI,
   createRoute,
 } from '../../config/contracts.js'
+import { getTradingPairs } from '../../config/index.js'
 import { discoverBestPool } from '../../config/pool-discovery.js'
 import type { PoolType } from '../../config/pools.js'
-import { resolveToken, shouldUseStablePool } from '../../config/tokens.js'
+import { getValidTokensPrompt, resolveToken, shouldUseStablePool } from '../../config/tokens.js'
 import { getProvider } from '../../execution/wallet.js'
 
 /** Fee percentages for different pool types */
@@ -100,10 +101,7 @@ export const getQuoteTool = createTool({
 Returns expected output amount and route information.
 Use this to check swap prices before executing trades.
 
-VALID TOKENS (use EXACTLY these symbols):
-- Core: WETH, USDC, USDbC, DAI
-- DeFi: AERO, cbETH, cbBTC, WBTC, VIRTUAL, EIGEN
-- Meme: BRETT, DEGEN, TOSHI, MIGGLES, PONKE
+${getValidTokensPrompt(getTradingPairs())}
 
 Supports multi-hop routing with the optional 'via' parameter:
 - Direct: getQuote({ tokenIn: "USDC", tokenOut: "WETH", amountIn: "10" })

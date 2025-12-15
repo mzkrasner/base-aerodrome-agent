@@ -32,9 +32,14 @@ import {
   SLIPSTREAM_ROUTER_ABI,
   createRoute,
 } from '../../config/contracts.js'
-import { ENV_CONFIG, TRADING_CONFIG } from '../../config/index.js'
+import { ENV_CONFIG, TRADING_CONFIG, getTradingPairs } from '../../config/index.js'
 import { discoverBestPool } from '../../config/pool-discovery.js'
-import { TOKEN_ADDRESSES, resolveToken, shouldUseStablePool } from '../../config/tokens.js'
+import {
+  TOKEN_ADDRESSES,
+  getValidTokensPrompt,
+  resolveToken,
+  shouldUseStablePool,
+} from '../../config/tokens.js'
 import { swapTransactionsRepo } from '../../database/repositories/index.js'
 import { approveToken, getProvider, getWallet, isWalletConfigured } from '../../execution/wallet.js'
 import { performanceTracker } from '../../services/performance/performance-tracker.js'
@@ -87,10 +92,7 @@ Only call this when you have decided to trade AND you are confident.
 Requires wallet to be configured with AGENT_PRIVATE_KEY.
 NOTE: Trades are blocked in DRY_RUN mode - the tool will return an error instead of executing.
 
-VALID TOKENS (use EXACTLY these symbols):
-- Core: WETH, USDC, USDbC, DAI
-- DeFi: AERO, cbETH, cbBTC, WBTC, VIRTUAL, EIGEN
-- Meme: BRETT, DEGEN, TOSHI, MIGGLES, PONKE
+${getValidTokensPrompt(getTradingPairs())}
 
 Supports multi-hop routing with the optional 'via' parameter:
 - Direct: executeSwap({ tokenIn: "USDC", tokenOut: "WETH", amountIn: "10", minAmountOut: "0.003" })
