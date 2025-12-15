@@ -23,7 +23,7 @@ import { APICallError } from 'ai'
 import { privateKeyToAccount } from 'viem/accounts'
 
 import { getTradingPairs } from '../../../config/index.js'
-import { getValidTokensPrompt } from '../../../config/tokens.js'
+import { getValidTokensPrompt, resolveToken } from '../../../config/tokens.js'
 import { executeSwapTool, getQuoteTool } from '../../../tools/index.js'
 import {
   DEFAULT_MODELS,
@@ -95,6 +95,43 @@ export interface CreateEigenAIModelOptions {
 // =============================================================================
 // Helper Functions
 // =============================================================================
+
+/** DexScreener API response type */
+interface DexScreenerResponse {
+  pairs?: Array<{
+    chainId: string
+    priceUsd?: string
+    liquidity?: { usd?: number }
+  }>
+}
+
+/**
+ * Fetch current USD price for a token from DexScreener
+ * Used for price impact validation before executing trades
+ */
+async function fetchDexScreenerPrice(tokenAddress: string): Promise<number> {
+  try {
+    const response = await fetch(`https://api.dexscreener.com/latest/dex/tokens/${tokenAddress}`)
+    if (!response.ok) return 0
+
+    const data = (await response.json()) as DexScreenerResponse
+
+    if (data.pairs && data.pairs.length > 0) {
+      const basePairs = data.pairs.filter((p) => p.chainId === 'base')
+      if (basePairs.length === 0) return 0
+
+      // Use the most liquid pair for price
+      const bestPair = basePairs.sort(
+        (a, b) => (b.liquidity?.usd || 0) - (a.liquidity?.usd || 0)
+      )[0]
+
+      return parseFloat(bestPair.priceUsd || '0')
+    }
+    return 0
+  } catch {
+    return 0
+  }
+}
 
 /**
  * Parse EigenAI error response and return appropriate error code
@@ -359,12 +396,37 @@ async function executeTradeFromDecision(qwenContent: string): Promise<string | n
     const expectedAmountOut = quoteResult.tokenOut.amountOut
     console.log(`[EigenAI] Quote: ${amountUsd} ${tokenIn} → ${expectedAmountOut} ${tokenOut}`)
 
-    // Step 2: Apply slippage (1%)
-    const slippagePercent = 1.0
+    // Step 2: PRICE IMPACT CHECK - Compare quoted output value vs input value
+    // This prevents executing trades with terrible quotes (e.g., 50% slippage due to low liquidity)
     const expectedOut = parseFloat(expectedAmountOut)
+    const tokenOutAddress = resolveToken(tokenOut)?.address
+    if (tokenOutAddress) {
+      const tokenOutPriceUsd = await fetchDexScreenerPrice(tokenOutAddress)
+      if (tokenOutPriceUsd > 0) {
+        const expectedOutputUsd = expectedOut * tokenOutPriceUsd
+        const priceImpactPercent = ((amountUsd - expectedOutputUsd) / amountUsd) * 100
+
+        console.log(
+          `[EigenAI] Price impact check: $${amountUsd} in → $${expectedOutputUsd.toFixed(2)} out (${priceImpactPercent.toFixed(1)}% impact)`
+        )
+
+        // Use RISK_CONFIG.maxPriceImpactPercent (default 1%) - but be generous for low liquidity tokens (5%)
+        const maxImpact = 5.0 // Allow up to 5% price impact
+        if (priceImpactPercent > maxImpact) {
+          console.error(
+            `[EigenAI] ❌ Trade rejected: ${priceImpactPercent.toFixed(1)}% price impact exceeds ${maxImpact}% max`
+          )
+          decision.trade_decisions![0].rationale = `${tradeDecision.rationale} [REJECTED: ${priceImpactPercent.toFixed(1)}% price impact exceeds ${maxImpact}% max]`
+          return JSON.stringify(decision)
+        }
+      }
+    }
+
+    // Step 3: Apply slippage tolerance for execution (1%)
+    const slippagePercent = 1.0
     const minAmountOut = (expectedOut * (1 - slippagePercent / 100)).toFixed(8)
 
-    // Step 3: Execute the swap (with via if multi-hop)
+    // Step 4: Execute the swap (with via if multi-hop)
     const swapResult = await executeSwapTool.execute({
       context: {
         tokenIn,
